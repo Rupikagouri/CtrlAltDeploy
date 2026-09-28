@@ -1,0 +1,41 @@
+{
+  "assigned_author": "Tanmaya (Member 2)",
+  "interactions": [
+    {
+      "call_id": 4,
+      "date": "5 weeks ago",
+      "title": "Executive Business & CFO Alignment",
+      "attendees": ["Linda Sterling (CFO)", "Priya Sharma (Champion)", "Veridian AE"],
+      "summary": "Linda joined to discuss financials. She established a hard budget cap: 'Our departmental allocation for this tool is strictly capped at $50,000 for FY2026. Anything higher will require Board review which we do not have time for.' Linda also stated she will not sign any multi-year contract without an opt-out.",
+      "critical_facts": {
+        "budget_ceiling_usd": 50000,
+        "requires_opt_out": true,
+        "board_review_trigger_amount": 50000
+      }
+    },
+    {
+      "call_id": 5,
+      "date": "4 weeks ago",
+      "title": "Mid-Evaluation Check-in",
+      "attendees": ["Priya Sharma (Champion)", "Nadia Chen (Security)", "Veridian AE"],
+      "summary": "Priya confirmed team enthusiasm. Nadia reminded AE that she still has not received the SOC-2 report and asked for the third-party pen-test summary as well. AE promised to follow up.",
+      "critical_facts": {
+        "security_blocker": "SOC-2 Report still unfulfilled (promised in Call 2)",
+        "secondary_request": "Pen-test executive summary"
+      }
+    },
+    {
+      "call_id": 6,
+      "date": "3 weeks ago",
+      "title": "Competitive Threat Emergence",
+      "attendees": ["Priya Sharma (Champion)", "Veridian AE"],
+      "summary": "Priya reached out privately: Competitor NimbusAI submitted an unsolicited proposal offering their platform for $48,000/year. Priya prefers Veridian's developer ergonomics, but warned that Linda is looking closely at NimbusAI's lower quote.",
+      "critical_facts": {
+        "competitor_name": "NimbusAI",
+        "competitor_quote_usd": 48000,
+        "champion_preference": "Veridian",
+        "economic_buyer_leaning": "NimbusAI due to price"
+      }
+    }
+  ]
+}
