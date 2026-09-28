@@ -15,7 +15,7 @@ from tanmaya.collision_detector import TanmayaCollisionDetector
 from tanmaya.collision_ui import render_collision_cards, render_actionable_guidance
 from memory import DealMemoryBank
 
-st.set_page_config(page_title="Tanmaya's Collision Engine | Foresight", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="Foresight | Collision Engine", page_icon="⚡", layout="wide")
 
 # Initialize persistent session state for memory
 if "deal_memory" not in st.session_state:
@@ -32,7 +32,7 @@ with open(kb_path, "r", encoding="utf-8") as f:
 detector = TanmayaCollisionDetector(company_kb=company_kb)
 
 st.title("⚡ Foresight: Collision Check & Dynamic Memory Reflection")
-st.caption("Developed by **Tanmaya (Member 2)** — Collision Engine & Dynamic Reflection Lead")
+st.caption("Powered by **Hindsight Agent Memory** | Multi-Constraint Negotiation Safeguard")
 st.divider()
 
 # Check current SOC-2 status in memory
