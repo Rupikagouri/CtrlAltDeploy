@@ -1,0 +1,34 @@
+{
+  "company_name": "Veridian",
+  "product_name": "Veridian Cloud Platform",
+  "deployment_policy": {
+    "standard_timeline_weeks": "4 to 6 weeks",
+    "minimum_express_timeline_weeks": 3,
+    "express_requirements": "Requires VP Engineering sign-off and dedicated solutions architect allocation",
+    "two_week_deployment_feasible": false,
+    "two_week_rejection_reason": "Veridian VPC peering, IAM role setup, and automated data pipeline validation require at least 21 business days. A 2-week timeline creates catastrophic deployment failure risk."
+  },
+  "pricing_and_discount_policy": {
+    "standard_acme_quote_annual": 72000,
+    "discount_tiers": {
+      "rep_authority_max_percent": 15,
+      "rep_minimum_floor": 61200,
+      "vp_sales_authority_max_percent": 25,
+      "vp_sales_minimum_floor": 54000,
+      "ceo_board_approval_required_above_percent": 25
+    },
+    "forty_percent_discount_allowed": false,
+    "forty_percent_price": 43200,
+    "policy_note": "A 40% discount ($43,200) requires CEO approval and is strictly forbidden without a 3-year upfront commitment."
+  },
+  "security_and_compliance_policy": {
+    "soc2_type_ii_requirement": "Mandatory delivery and mutual security team review before any production data ingestion or staging VPC access.",
+    "pen_test_summary": "Available upon request under mutual NDA.",
+    "data_residency": "AWS US-East and EU-West supported natively."
+  },
+  "commercial_terms": {
+    "standard_payment_terms": "Net 30",
+    "net_60_approval": "Requires Finance Controller approval; minimum ACV $65,000",
+    "price_lock_terms": "Standard annual renewal cap is 5%. 3% cap requires VP approval."
+  }
+}

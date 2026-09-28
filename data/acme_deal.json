@@ -1,0 +1,192 @@
+{
+  "deal_metadata": {
+    "deal_id": "DEAL-ACME-2026",
+    "customer_name": "ACME Corp",
+    "vendor_name": "Veridian",
+    "industry": "FinTech / High-Volume Logistics",
+    "stage": "Proposal Review & Commercial Negotiation",
+    "initial_quote_arr": 72000,
+    "current_status": "High Stakes - Active Negotiation",
+    "total_interactions": 9,
+    "history_duration_weeks": 8
+  },
+  "stakeholders": [
+    {
+      "name": "Priya Sharma",
+      "title": "VP of Technology",
+      "role": "Internal Champion",
+      "sentiment": "Strongly Positive",
+      "concerns": ["Team productivity", "Integration with existing AWS telemetry", "Hitting Q4 roadmap targets"]
+    },
+    {
+      "name": "Marcus Vance",
+      "title": "Principal Architect",
+      "role": "Technical Evaluator",
+      "sentiment": "Positive with Technical Rigor",
+      "concerns": ["API throughput limits", "VPC peering latency", "Realistic migration timeline"]
+    },
+    {
+      "name": "Linda Sterling",
+      "title": "Chief Financial Officer (CFO)",
+      "role": "Economic Buyer",
+      "sentiment": "Budget-Conscious / Skeptical of Lock-in",
+      "concerns": ["Hard $50k Q4 budget ceiling", "Refuses 3-year lock-in", "Demands ROI justification within 6 months"]
+    },
+    {
+      "name": "Nadia Chen",
+      "title": "Head of Information Security (CISO)",
+      "role": "Security Gatekeeper",
+      "sentiment": "Strict / Non-negotiable",
+      "concerns": ["SOC-2 Type II audit report", "Data encryption at rest", "Pen-test executive summary"]
+    },
+    {
+      "name": "Owen Miller",
+      "title": "Director of Procurement",
+      "role": "Commercial Negotiator",
+      "sentiment": "Aggressive / Procurement Tactics",
+      "concerns": ["Net 60 payment terms", "Price match against NimbusAI", "Maximum discount extraction"]
+    }
+  ],
+  "commitments": [
+    {
+      "id": "COMM-01",
+      "title": "Architecture Deep-Dive Session",
+      "promised_by": "Veridian Solutions Architect",
+      "recipient": "Marcus Vance",
+      "call_ref": "Call #3",
+      "date_promised": "6 weeks ago",
+      "status": "Completed",
+      "status_notes": "Completed successfully. Marcus validated VPC throughput."
+    },
+    {
+      "id": "COMM-02",
+      "title": "SOC-2 Type II Audit Report Delivery",
+      "promised_by": "Veridian Account Executive",
+      "recipient": "Nadia Chen",
+      "call_ref": "Call #2",
+      "date_promised": "31 days ago",
+      "status": "Overdue",
+      "status_notes": "No fulfilment recorded. Nadia explicitly made this a hard prerequisite for production access."
+    },
+    {
+      "id": "COMM-03",
+      "title": "Pen-Test Executive Summary Delivery",
+      "promised_by": "Veridian Account Executive",
+      "recipient": "Nadia Chen",
+      "call_ref": "Call #5",
+      "date_promised": "2 weeks ago",
+      "status": "Pending",
+      "status_notes": "Queued with Security team pending mutual NDA execution."
+    }
+  ],
+  "interactions": [
+    {
+      "call_id": 1,
+      "date": "8 weeks ago",
+      "title": "Discovery Call",
+      "attendees": ["Priya Sharma (Champion)", "Veridian AE"],
+      "summary": "Priya outlined ACME's scaling bottleneck. Their internal system cannot handle high-volume event spikes. They are 100% on AWS. Expressed urgent desire to launch before their Q4 holiday rush.",
+      "key_takeaways": [
+        "Infrastructure is exclusively AWS us-east-1",
+        "Priya is our internal champion and will advocate internally",
+        "Target go-live ideally before end of October"
+      ]
+    },
+    {
+      "call_id": 2,
+      "date": "7 weeks ago (31 days ago)",
+      "title": "Initial Security Scoping",
+      "attendees": ["Nadia Chen (Security)", "Veridian AE"],
+      "summary": "Nadia joined to assess compliance. Emphasized that ACME processes sensitive financial transactions. She stated unequivocally: 'No production data can touch your platform without our security team reviewing your audited SOC-2 Type II report.' AE verbally promised to email it within 48 hours.",
+      "key_takeaways": [
+        "CRITICAL REQUIREMENT: SOC-2 Type II report required before production data access",
+        "AE promised SOC-2 delivery (No fulfilment recorded)",
+        "Nadia is an absolute blocker if security documentation is absent"
+      ]
+    },
+    {
+      "call_id": 3,
+      "date": "6 weeks ago",
+      "title": "Technical Architecture Deep Dive",
+      "attendees": ["Marcus Vance (Architect)", "Priya Sharma", "Veridian SA"],
+      "summary": "Marcus grilled the team on latency and data pipeline ingestion. Veridian SA confirmed architecture. Marcus asked if deployment could be accelerated: Veridian SA confirmed standard deployment is 4 to 6 weeks due to VPC configuration and integration tests.",
+      "key_takeaways": [
+        "Marcus satisfied with architecture specs",
+        "Deployment baseline established as 4 to 6 weeks",
+        "Marcus noted ACME has an annual production freeze starting October 15"
+      ]
+    },
+    {
+      "call_id": 4,
+      "date": "5 weeks ago",
+      "title": "Executive Business & CFO Alignment",
+      "attendees": ["Linda Sterling (CFO)", "Priya Sharma", "Veridian AE"],
+      "summary": "Linda joined to discuss financials. She established a hard budget cap: 'Our departmental allocation for this tool is strictly capped at $50,000 for FY2026. Anything higher will require Board review which we do not have time for.' Linda also stated she will not sign any multi-year contract without an opt-out.",
+      "key_takeaways": [
+        "HARD BUDGET CAP: $50,000 annual limit",
+        "Linda will not approve multi-year lock-in without opt-out",
+        "Board review needed if price exceeds $50,000"
+      ]
+    },
+    {
+      "call_id": 5,
+      "date": "4 weeks ago",
+      "title": "Mid-Evaluation Check-in",
+      "attendees": ["Priya Sharma", "Nadia Chen", "Veridian AE"],
+      "summary": "Priya confirmed team enthusiasm. Nadia reminded AE that she still has not received the SOC-2 report and asked for the third-party pen-test summary as well. AE promised to follow up with operations.",
+      "key_takeaways": [
+        "Nadia reiterated missing SOC-2 report",
+        "Pen-test summary requested",
+        "Deal risk rising due to unfulfilled security promise"
+      ]
+    },
+    {
+      "call_id": 6,
+      "date": "3 weeks ago",
+      "title": "Competitive Threat Emergence",
+      "attendees": ["Priya Sharma (Champion)", "Veridian AE"],
+      "summary": "Priya reached out privately: Competitor NimbusAI submitted an unsolicited proposal offering their platform for $48,000/year. Priya prefers Veridian's developer ergonomics, but warned that Linda is looking closely at NimbusAI's lower quote.",
+      "key_takeaways": [
+        "COMPETITOR IDENTIFIED: NimbusAI pitching at $48,000/year",
+        "Linda is inclined towards NimbusAI due to the $48k price tag",
+        "Priya wants us to give her arguments to defend Veridian to Linda"
+      ]
+    },
+    {
+      "call_id": 7,
+      "date": "2 weeks ago",
+      "title": "Procurement Intake & Commercial Review",
+      "attendees": ["Owen Miller (Procurement)", "Veridian AE"],
+      "summary": "Owen took over commercial negotiations. Demanded our master services agreement (MSA) and standard payment terms. Inquired about Net 60 payment terms. Stated that procurement evaluates vendors strictly on total cost and rapid onboarding.",
+      "key_takeaways": [
+        "Procurement (Owen) entered the cycle",
+        "Owen pushing for Net 60 terms",
+        "Owen focused on vendor concessions and price reduction"
+      ]
+    },
+    {
+      "call_id": 8,
+      "date": "1 week ago",
+      "title": "Formal Proposal Delivery",
+      "attendees": ["Owen Miller", "Linda Sterling", "Priya Sharma", "Veridian AE"],
+      "summary": "Veridian formally delivered the full enterprise proposal at list price: $72,000 ARR with 4-6 week onboarding. Linda frowned at the price. Owen remarked that 'there is significant room for commercial alignment before we can present this to the committee.'",
+      "key_takeaways": [
+        "Formal quote delivered: $72,000 ARR",
+        "Expected pushback from Linda ($50k budget ceiling) and Owen",
+        "NimbusAI at $48k looming in the background"
+      ]
+    },
+    {
+      "call_id": 9,
+      "date": "Yesterday",
+      "title": "Pre-Closing Tactical Exchange",
+      "attendees": ["Owen Miller (Procurement)", "Priya Sharma", "Veridian AE"],
+      "summary": "Owen signaled they are ready to make a vendor decision by Friday. Warned that if Veridian cannot meet their aggressive delivery schedule before the October 15 freeze and get within budget, they will issue the PO to NimbusAI.",
+      "key_takeaways": [
+        "Decision imminent: Friday deadline",
+        "October 15 production freeze is the real deadline driving panic",
+        "High probability of an aggressive concession demand incoming"
+      ]
+    }
+  ]
+}
