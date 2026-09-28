@@ -15,6 +15,42 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Pydantic models for structured pre-call brief output
+try:
+    from pydantic import BaseModel, Field
+
+    class StakeholderSensitivity(BaseModel):
+        name: str
+        role: str
+        sensitivity: str
+        recommended_approach: str
+
+    class CompetitorIntelligence(BaseModel):
+        competitor: str
+        their_offer: str
+        our_differentiators: List[str]
+        battle_card_tip: str
+
+    class OpenCommitmentRisk(BaseModel):
+        commitment: str
+        recipient: str
+        status: str
+        risk: str
+
+    class PreCallBrief(BaseModel):
+        headline: str
+        stakeholder_sensitivities: List[StakeholderSensitivity]
+        competitor_intelligence: CompetitorIntelligence
+        open_commitments_at_risk: List[OpenCommitmentRisk]
+        winning_tactics: List[str]
+        one_sentence_coaching_tip: str
+
+    PYDANTIC_AVAILABLE = True
+
+except ImportError:
+    PYDANTIC_AVAILABLE = False
+    PreCallBrief = None
+
 load_dotenv()
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -187,6 +223,255 @@ class DealMemoryBank:
             "company_kb": self.company_kb,
             "recent_audit_events": self.memory_audit_log[-5:]
         }
+
+    # ------------------------------------------------------------------
+    # Member 1: Deal Memory Ingestion & Pre-Call Intelligence
+    # ------------------------------------------------------------------
+
+    def seed_deal_memory(self) -> Dict[str, Any]:
+        """
+        Member 1 — Ingestion Pipeline.
+
+        Seeds the Hindsight memory bank by calling retain() on every
+        interaction, stakeholder sensitivity, and commitment loaded from
+        data/acme_deal.json.  Idempotent: re-seeding only appends new
+        audit entries; it does not duplicate cloud-side data because
+        Hindsight deduplicates on content + context.
+
+        Returns a summary dict with counts for UI feedback.
+        """
+        seeded_interactions = 0
+        seeded_stakeholders = 0
+        seeded_commitments = 0
+
+        # --- Seed all interactions ---
+        for call in self.interactions:
+            content_parts = [
+                f"[CALL {call.get('call_id')}] {call.get('title')} — {call.get('date')}.",
+                f"Attendees: {', '.join(call.get('attendees', []))}.",
+                f"Summary: {call.get('summary', '')}",
+                "Key takeaways: " + " | ".join(call.get("key_takeaways", [])),
+            ]
+            content = " ".join(content_parts)
+            self.retain(
+                content=content,
+                category="interaction",
+                metadata={
+                    "call_id": call.get("call_id"),
+                    "title": call.get("title"),
+                    "date": call.get("date"),
+                    "attendees": call.get("attendees", []),
+                },
+            )
+            seeded_interactions += 1
+
+        # --- Seed stakeholder sensitivities ---
+        for stakeholder in self.stakeholders:
+            concerns_str = "; ".join(stakeholder.get("concerns", []))
+            content = (
+                f"[STAKEHOLDER] {stakeholder['name']} ({stakeholder['title']}, {stakeholder['role']}). "
+                f"Sentiment: {stakeholder['sentiment']}. "
+                f"Key concerns and sensitivities: {concerns_str}."
+            )
+            self.retain(
+                content=content,
+                category="stakeholder_sensitivity",
+                metadata={
+                    "name": stakeholder["name"],
+                    "role": stakeholder["role"],
+                    "sentiment": stakeholder["sentiment"],
+                },
+            )
+            seeded_stakeholders += 1
+
+        # --- Seed commitments ---
+        for commitment in self.commitments:
+            content = (
+                f"[COMMITMENT {commitment['id']}] '{commitment['title']}' "
+                f"promised by {commitment['promised_by']} to {commitment['recipient']} "
+                f"(ref: {commitment.get('call_ref', 'N/A')}, promised: {commitment.get('date_promised', 'N/A')}). "
+                f"Current status: {commitment['status']}. "
+                f"Notes: {commitment.get('status_notes', '')}."
+            )
+            self.retain(
+                content=content,
+                category="commitment",
+                metadata={
+                    "id": commitment["id"],
+                    "status": commitment["status"],
+                    "recipient": commitment["recipient"],
+                },
+            )
+            seeded_commitments += 1
+
+        summary = {
+            "seeded_interactions": seeded_interactions,
+            "seeded_stakeholders": seeded_stakeholders,
+            "seeded_commitments": seeded_commitments,
+            "total_retained": seeded_interactions + seeded_stakeholders + seeded_commitments,
+            "timestamp": datetime.now().strftime("%H:%M:%S"),
+        }
+        return summary
+
+    def generate_pre_call_brief(self) -> Dict[str, Any]:
+        """
+        Member 1 — Pre-Call Intelligence Engine.
+
+        1. Calls recall() with high-signal queries to surface the most
+           relevant memories about stakeholder objections, pricing
+           pressure, security blockers, and competitive threats.
+        2. Passes the retrieved memories + full deal context into the
+           Groq LLM using the prompt template from prompts.py.
+        3. Parses the JSON response into a PreCallBrief Pydantic model
+           (or a plain dict as fallback).
+        4. Returns the brief as a dict, ready for Streamlit to render.
+
+        Raises RuntimeError if GROQ_API_KEY is not set.
+        """
+        from prompts import PRE_CALL_BRIEF_SYSTEM_PROMPT, build_pre_call_brief_prompt
+
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        if not groq_api_key or groq_api_key == "your_groq_api_key_here":
+            raise RuntimeError(
+                "GROQ_API_KEY is not set. Add it to your .env file. "
+                "Get a free key at https://console.groq.com"
+            )
+
+        # --- Multi-query recall to pull the most relevant memories ---
+        recall_queries = [
+            "stakeholder objections budget security timeline",
+            "SOC-2 compliance security blocker Nadia commitment",
+            "NimbusAI competitor price 48000 Linda budget ceiling",
+            "deployment timeline 4 6 weeks October freeze Marcus",
+            "procurement Owen discount concession Friday deadline",
+        ]
+        recalled = []
+        seen_ids = set()
+        for query in recall_queries:
+            results = self.recall(query=query, top_k=4)
+            for r in results:
+                uid = r.get("call_id") or r.get("id")
+                if uid not in seen_ids:
+                    seen_ids.add(uid)
+                    recalled.append(r)
+
+        # --- Build the structured prompt ---
+        user_prompt = build_pre_call_brief_prompt(
+            recalled_memories=recalled,
+            stakeholders=self.stakeholders,
+            commitments=self.commitments,
+            deal_metadata=self.metadata,
+            company_kb=self.company_kb,
+        )
+
+        # --- Call Groq LLM ---
+        try:
+            from groq import Groq
+        except ImportError:
+            raise RuntimeError("groq package not installed. Run: pip install groq")
+
+        client = Groq(api_key=groq_api_key)
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {"role": "system", "content": PRE_CALL_BRIEF_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            max_tokens=3500,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "pre_call_brief",
+                    "strict": True,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "headline": {
+                                "type": "string"
+                            },
+                            "stakeholder_sensitivities": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {"type": "string"},
+                                        "role": {"type": "string"},
+                                        "sensitivity": {"type": "string"},
+                                        "recommended_approach": {"type": "string"}
+                                    },
+                                    "required": ["name", "role", "sensitivity", "recommended_approach"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            "competitor_intelligence": {
+                                "type": "object",
+                                "properties": {
+                                    "competitor": {"type": "string"},
+                                    "their_offer": {"type": "string"},
+                                    "our_differentiators": {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    },
+                                    "battle_card_tip": {"type": "string"}
+                                },
+                                "required": ["competitor", "their_offer", "our_differentiators", "battle_card_tip"],
+                                "additionalProperties": False
+                            },
+                            "open_commitments_at_risk": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "commitment": {"type": "string"},
+                                        "recipient": {"type": "string"},
+                                        "status": {"type": "string"},
+                                        "risk": {"type": "string"}
+                                    },
+                                    "required": ["commitment", "recipient", "status", "risk"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            "winning_tactics": {
+                                "type": "array",
+                                "items": {"type": "string"}
+                            },
+                            "one_sentence_coaching_tip": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "headline",
+                            "stakeholder_sensitivities",
+                            "competitor_intelligence",
+                            "open_commitments_at_risk",
+                            "winning_tactics",
+                            "one_sentence_coaching_tip"
+                        ],
+                        "additionalProperties": False
+                    }
+                }
+            },
+        )
+
+        raw_json = response.choices[0].message.content
+
+        # --- Parse into Pydantic model or plain dict ---
+        try:
+            brief_dict = json.loads(raw_json)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"LLM returned non-JSON content: {exc}\nRaw: {raw_json[:300]}")
+
+        if PYDANTIC_AVAILABLE and PreCallBrief is not None:
+            try:
+                brief = PreCallBrief(**brief_dict)
+                return brief.model_dump()
+            except Exception:
+                # If schema mismatch, return the raw dict with a warning flag
+                brief_dict["_schema_warning"] = "Response did not match PreCallBrief schema; returning raw dict."
+                return brief_dict
+
+        return brief_dict
 
 
 # Singleton memory instance for runtime sharing
