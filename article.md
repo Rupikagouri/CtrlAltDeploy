@@ -244,3 +244,6 @@ You should not rely on an LLM's next-token prediction to decide whether a discou
 Stateless chatbots treat conversations as ephemeral noise. But in high-stakes enterprise workflows, conversation history is a web of promises, liabilities, and leverage.
 
 By integrating [Hindsight](https://github.com/vectorize-io/hindsight) into our deal intelligence architecture, we gave our agent the ability to remember what was promised, flag dangerous collisions, and dynamically adapt its strategy when real-world milestones are reached. That is the difference between an AI that makes reckless promises and one you can actually trust with your business.
+
+---
+*Explore the full implementation on [GitHub](https://github.com/Rupikagouri/CtrlAltDeploy).*
