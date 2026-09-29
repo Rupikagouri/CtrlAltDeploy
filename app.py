@@ -1,328 +1,448 @@
 """
-app.py - Streamlit Frontend Dashboard for Project Foresight.
-Foresight: Powered by Hindsight.
-"Hindsight gives you foresight."
+app.py — Foresight: Hindsight-Powered Deal Intelligence
+
+Unified Streamlit entry point for the full Foresight demo.
+
+Layout (top → bottom):
+  [Member 1] Deal Overview Header (ACME deal context + stakeholder chips)
+  [Member 1] Pre-Call Executive Brief Card (Groq LLM, grounded in Hindsight memory)
+  [Member 2] Collision Check Engine + Dynamic Memory Reflection (Tanmaya)
+
+Run with:
+    streamlit run app.py
 """
 
-import streamlit as st
+import os
+import sys
 import json
-from datetime import datetime
-from memory import DealMemoryBank
-from collision_engine import collision_engine
+import streamlit as st
 
+# Ensure the project root is always on sys.path (important when launched from sub-dirs)
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+from memory import DealMemoryBank
+
+# Member 2 (Tanmaya) components
+from tanmaya.collision_detector import TanmayaCollisionDetector
+from tanmaya.collision_ui import render_collision_cards, render_actionable_guidance
+
+# Member 3 (Rupika) components
+from commitment_ledger import build_commitment_ledger
+from predictive_foresight import build_predictive_foresight
+
+# ---------------------------------------------------------------------------
+# Page config
+# ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Foresight | Deal Intelligence with Hindsight Memory",
+    page_title="Foresight — Deal Intelligence",
     page_icon="🔮",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed",
 )
 
-# Initialize persistent session state for memory
+# ---------------------------------------------------------------------------
+# Session state initialisation
+# ---------------------------------------------------------------------------
 if "deal_memory" not in st.session_state:
     st.session_state.deal_memory = DealMemoryBank()
+
+if "memory_seeded" not in st.session_state:
+    st.session_state.memory_seeded = False
+
+if "pre_call_brief" not in st.session_state:
+    st.session_state.pre_call_brief = None
+
+if "brief_error" not in st.session_state:
+    st.session_state.brief_error = None
 
 if "memory_updated_event" not in st.session_state:
     st.session_state.memory_updated_event = False
 
-# Custom Styling for polished enterprise SaaS aesthetic
-st.markdown("""
-<style>
-    .reportview-container {
-        background-color: #0e1117;
-    }
-    .metric-card {
-        background: #1e222d;
-        border-radius: 8px;
-        padding: 15px;
-        border: 1px solid #2d3342;
-        margin-bottom: 12px;
-    }
-    .badge-red {
-        background-color: #ffebe9;
-        color: #cf222e;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        border: 1px solid #ff8182;
-    }
-    .badge-orange {
-        background-color: #fff8c5;
-        color: #9a6700;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        border: 1px solid #d4a72c;
-    }
-    .badge-yellow {
-        background-color: #fef9c3;
-        color: #854d0e;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        border: 1px solid #facc15;
-    }
-    .badge-green {
-        background-color: #dafbe1;
-        color: #1a7f37;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        border: 1px solid #4ac26b;
-    }
-    .evidence-box {
-        background: #161b22;
-        border-left: 3px solid #58a6ff;
-        padding: 10px 14px;
-        margin-top: 8px;
-        border-radius: 0 6px 6px 0;
-        font-family: monospace;
-        font-size: 0.85rem;
-        color: #c9d1d9;
-    }
-</style>
-""", unsafe_allow_html=True)
+memory: DealMemoryBank = st.session_state.deal_memory
 
-# ----------------- SIDEBAR -----------------
-with st.sidebar:
-    st.title("🔮 Foresight")
-    st.caption("Powered by **Hindsight Agent Memory**")
-    st.divider()
+# Load Tanmaya's company KB (her copy has the keys her detector expects)
+_tanmaya_kb_path = os.path.join(os.path.dirname(__file__), "tanmaya", "company_kb.json")
+with open(_tanmaya_kb_path, "r", encoding="utf-8") as _f:
+    _tanmaya_kb = json.load(_f)
 
-    st.subheader("🏢 Active Deal")
-    st.markdown("**ACME Corp** (FinTech / Logistics)")
-    st.markdown("**Stage:** Proposal Review & Negotiation")
-    st.markdown("**Quote:** `$72,000 ARR`")
-    st.markdown("**History:** `9 Calls | 8 Weeks`")
+detector = TanmayaCollisionDetector(company_kb=_tanmaya_kb)
 
-    st.divider()
-    st.subheader("👥 Key Stakeholders")
-    for s in st.session_state.deal_memory.stakeholders:
-        with st.expander(f"{s['name']} — {s['role']}"):
-            st.caption(f"**Title:** {s['title']}")
-            st.caption(f"**Sentiment:** {s['sentiment']}")
-            st.caption(f"**Top Concern:** {s['concerns'][0]}")
-
-    st.divider()
-    st.caption("Repository: `CtrlAltDeploy/Foresight`")
-    st.caption("HackwithHyderabad 3.0 Edition")
-
-
-# ----------------- MAIN HEADER -----------------
-col_head1, col_head2 = st.columns([3, 1])
-with col_head1:
-    st.title("Foresight: Powered by Hindsight")
-    st.markdown("*Checking new customer requests against long-term deal memory to prevent commercial disasters.*")
-with col_head2:
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.info("🧠 **Memory Bank:** `acme-deal` (Active)")
-
+# ---------------------------------------------------------------------------
+# ── SECTION 1 (Member 1): DEAL OVERVIEW HEADER
+# ---------------------------------------------------------------------------
+st.markdown("# 🔮 Foresight — Hindsight-Powered Deal Intelligence")
+st.caption("*Powered by Hindsight memory · Groq LLaMA-3.3-70b · Veridian × ACME Corp*")
 st.divider()
 
-# ----------------- TABS -----------------
-tab1, tab2, tab3, tab4 = st.tabs([
-    "⚡ The Collision Check (Main Demo)",
-    "📋 Instant Pre-Call Briefing",
-    "📑 Living Commitment Ledger",
-    "📜 Deal History Explorer (9 Calls)"
-])
+md = memory.metadata
 
-# ================= TAB 1: THE COLLISION CHECK =================
-with tab1:
-    st.subheader("⚡ Automated Deal Collision Detection")
-    st.markdown(
-        "When an aggressive request or email arrives from a customer, Foresight checks it against "
-        "**all 8 weeks of deal memory** and company policies to identify hidden landmines."
+# Top KPI strip
+kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+kpi1.metric("Customer", md.get("customer_name", "ACME Corp"))
+kpi2.metric("Stage", "Proposal Review")
+kpi3.metric("Deal Value (ARR)", f"${md.get('initial_quote_arr', 72000):,}")
+kpi4.metric("Interactions Indexed", md.get("total_interactions", 9))
+kpi5.metric("Status", "🔴 High Stakes")
+
+st.markdown("---")
+
+# Stakeholder chips row
+st.markdown("#### 👥 Deal Stakeholders")
+
+SENTIMENT_COLOURS = {
+    "Strongly Positive": "#1a7340",
+    "Positive with Technical Rigor": "#2e6da4",
+    "Budget-Conscious / Skeptical of Lock-in": "#b85c00",
+    "Strict / Non-negotiable": "#9b1c1c",
+    "Aggressive / Procurement Tactics": "#5a3e8e",
+}
+
+ROLE_ICONS = {
+    "Internal Champion": "🏆",
+    "Technical Evaluator": "🔧",
+    "Economic Buyer": "💰",
+    "Security Gatekeeper": "🔒",
+    "Commercial Negotiator": "📋",
+}
+
+chip_cols = st.columns(len(memory.stakeholders))
+for col, s in zip(chip_cols, memory.stakeholders):
+    icon = ROLE_ICONS.get(s.get("role", ""), "👤")
+    colour = SENTIMENT_COLOURS.get(s.get("sentiment", ""), "#444")
+    col.markdown(
+        f"""<div style="
+                border-left: 4px solid {colour};
+                padding: 8px 10px;
+                border-radius: 6px;
+                background: #1e1e2e;
+                font-size: 0.85rem;
+                line-height: 1.5;
+            ">
+            <strong>{icon} {s['name']}</strong><br>
+            <span style="color:#aaa;">{s['title']}</span><br>
+            <span style="color:#ccc;font-size:0.78rem;">{s['role']}</span>
+        </div>""",
+        unsafe_allow_html=True,
     )
 
-    # Check current SOC-2 state
-    soc2_comm = next((c for c in st.session_state.deal_memory.commitments if c["id"] == "COMM-02"), None)
-    is_soc2_sent = soc2_comm and soc2_comm.get("status") == "Completed"
+st.markdown("---")
 
-    # Pre-filled Demo Prompt Box
-    col_input1, col_input2 = st.columns([3, 1])
-    with col_input1:
-        default_req = "Can you give us 40% off and get us live into production in two weeks?"
-        customer_request = st.text_area(
-            "Incoming Customer Request / Email:",
-            value=default_req,
-            height=85,
-            help="Type any request from the buyer to check against deal memory."
-        )
+# ---------------------------------------------------------------------------
+# ── SECTION 2 (Member 1): PRE-CALL EXECUTIVE BRIEF
+# ---------------------------------------------------------------------------
+st.markdown("## 📋 Pre-Call Executive Brief")
+st.caption(
+    "10-second dossier generated by Foresight — grounded exclusively in Hindsight deal memory."
+)
 
-    with col_input2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        run_check = st.button("🔍 Check Against Deal Memory", type="primary", use_container_width=True)
-        
-        if not is_soc2_sent:
-            mark_soc2 = st.button("🚀 Mark SOC-2 Sent to Nadia", use_container_width=True, help="Simulate sending the promised compliance report")
-            if mark_soc2:
-                st.session_state.deal_memory.mark_soc2_sent()
-                st.session_state.memory_updated_event = True
-                st.rerun()
-        else:
-            st.button("✅ SOC-2 Delivered (Active in Memory)", disabled=True, use_container_width=True)
-            reset_btn = st.button("🔄 Reset Demo (Revert to Overdue)", use_container_width=True, help="Reset memory to show judges the before state again")
-            if reset_btn:
-                st.session_state.deal_memory = DealMemoryBank()
-                st.session_state.memory_updated_event = False
-                st.rerun()
+m1_col1, m1_col2 = st.columns([2, 1])
 
-    # Dynamic Memory Reaction Banner if SOC-2 is sent
-    if is_soc2_sent:
+with m1_col2:
+    seed_btn = st.button(
+        "🌱 Seed Deal Memory",
+        use_container_width=True,
+        help="Indexes all 9 ACME interactions, stakeholder sensitivities, and commitments into Hindsight.",
+    )
+    brief_btn = st.button(
+        "⚡ Generate Pre-Call Brief",
+        type="primary",
+        use_container_width=True,
+        help="Queries deal memory and uses Groq LLaMA-3.3-70b to generate the brief.",
+    )
+
+    if st.session_state.memory_seeded:
+        st.success("✅ Memory Seeded", icon="✅")
+    else:
+        st.info("Memory not yet seeded this session.", icon="ℹ️")
+
+with m1_col1:
+    if seed_btn:
+        with st.spinner("Seeding deal memory from Hindsight bank…"):
+            result = memory.seed_deal_memory()
+            st.session_state.memory_seeded = True
         st.success(
-            "🎉 **DYNAMIC MEMORY REACTION TRIGGERED!**\n\n"
-            "Hindsight memory was updated live: **SOC-2 Report marked as Delivered to Nadia Chen**.\n"
-            "The Collision Engine has automatically **re-evaluated all constraints** against the updated deal history:\n"
-            "• 🔴 **Security Blocker** → **CLEARED** (Converted to verified step)\n"
-            "• 🎯 **Strategic Guidance** → Automatically shifted from **DEFENSIVE STOP** to **OFFENSIVE $49k CLOSING PLAN**"
+            f"✅ Seeded {result['total_retained']} memory entries: "
+            f"{result['seeded_interactions']} interactions · "
+            f"{result['seeded_stakeholders']} stakeholder profiles · "
+            f"{result['seeded_commitments']} commitments"
         )
 
-    # Evaluate Collisions against current memory
-    results = collision_engine.evaluate_request(customer_request, memory_bank=st.session_state.deal_memory)
+    if brief_btn:
+        with st.spinner("Querying Hindsight memory & generating brief with Groq…"):
+            try:
+                brief = memory.generate_pre_call_brief()
+                st.session_state.pre_call_brief = brief
+                st.session_state.brief_error = None
+            except RuntimeError as e:
+                st.session_state.brief_error = str(e)
+                st.session_state.pre_call_brief = None
+
+# Render the brief if available
+brief = st.session_state.pre_call_brief
+err = st.session_state.brief_error
+
+if err:
+    st.error(f"**Could not generate brief:** {err}")
+
+elif brief:
+    # Schema warning banner (only shown if LLM drifted from schema)
+    if brief.get("_schema_warning"):
+        st.warning(f"⚠️ {brief['_schema_warning']}")
+
+    # Headline
+    st.info(f"**Situation:** {brief.get('headline', 'N/A')}")
+
+    # Coaching tip — the single most important thing
+    coaching = brief.get("one_sentence_coaching_tip", "")
+    if coaching:
+        st.markdown(
+            f"""<div style="
+                background:#2d1b00;border-left:4px solid #f5a623;
+                padding:10px 14px;border-radius:6px;margin-bottom:12px;">
+                🎯 <strong>Coach's Tip:</strong> {coaching}
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
+    brief_tab1, brief_tab2, brief_tab3, brief_tab4 = st.tabs(
+        ["👥 Stakeholder Dossier", "🏁 Competitor Intel", "⚠️ Commitments at Risk", "💡 Winning Tactics"]
+    )
+
+    # --- Tab 1: Stakeholder Sensitivities ---
+    with brief_tab1:
+        sensitivities = brief.get("stakeholder_sensitivities", [])
+        if not sensitivities:
+            st.write("No stakeholder data in brief.")
+        for s in sensitivities:
+            name = s.get("name", "Unknown")
+            role = s.get("role", "")
+            sensitivity = s.get("sensitivity", "")
+            approach = s.get("recommended_approach", "")
+            icon = ROLE_ICONS.get(role, "👤")
+            colour = next(
+                (SENTIMENT_COLOURS[k] for k in SENTIMENT_COLOURS if k.lower() in role.lower()),
+                "#666",
+            )
+            with st.expander(f"{icon} **{name}** — {role}", expanded=True):
+                st.markdown(f"**🧠 Core Sensitivity:** {sensitivity}")
+                st.markdown(
+                    f"""<div style="
+                        background:#0d2137;border-left:3px solid #2e6da4;
+                        padding:8px 12px;border-radius:5px;margin-top:6px;">
+                        💬 <strong>Recommended Approach:</strong> {approach}
+                    </div>""",
+                    unsafe_allow_html=True,
+                )
+
+    # --- Tab 2: Competitor Intel ---
+    with brief_tab2:
+        ci = brief.get("competitor_intelligence", {})
+        if not ci:
+            st.write("No competitor data in brief.")
+        else:
+            comp_cols = st.columns(2)
+            with comp_cols[0]:
+                st.markdown(f"**Competitor:** `{ci.get('competitor', 'N/A')}`")
+                st.markdown(f"**Their Offer:** {ci.get('their_offer', 'N/A')}")
+                st.markdown(f"**Battle Card Tip:** {ci.get('battle_card_tip', 'N/A')}")
+            with comp_cols[1]:
+                st.markdown("**Our Differentiators:**")
+                for d in ci.get("our_differentiators", []):
+                    st.markdown(f"- {d}")
+
+    # --- Tab 3: Open Commitments at Risk ---
+    with brief_tab3:
+        at_risk = brief.get("open_commitments_at_risk", [])
+        if not at_risk:
+            st.success("All commitments are fulfilled — no open risks.")
+        for c in at_risk:
+            status = c.get("status", "")
+            badge_colour = "🔴" if "overdue" in status.lower() else "🟡"
+            with st.expander(
+                f"{badge_colour} **{c.get('commitment', 'N/A')}** → {c.get('recipient', 'N/A')} [{status}]"
+            ):
+                st.markdown(f"**Risk if unaddressed:** {c.get('risk', 'N/A')}")
+
+    # --- Tab 4: Winning Tactics ---
+    with brief_tab4:
+        tactics = brief.get("winning_tactics", [])
+        if not tactics:
+            st.write("No tactics generated.")
+        for i, tactic in enumerate(tactics, 1):
+            st.markdown(
+                f"""<div style="
+                    background:#0d1f0d;border-left:3px solid #2da44e;
+                    padding:8px 12px;border-radius:5px;margin-bottom:8px;">
+                    <strong>#{i}</strong> {tactic}
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+else:
+    # Placeholder card before brief is generated
+    st.markdown(
+        """<div style="
+            border:1px dashed #555;border-radius:8px;padding:24px;
+            text-align:center;color:#888;background:#111;">
+            <h3 style="color:#888;">⚡ Pre-Call Brief Not Yet Generated</h3>
+            <p>Click <strong>[ ⚡ Generate Pre-Call Brief ]</strong> to produce an evidence-based
+            10-second dossier from Hindsight deal memory.</p>
+            <p style="font-size:0.8rem;">Optionally, click <strong>[ 🌱 Seed Deal Memory ]</strong>
+            first to push all interactions into the Hindsight Cloud bank.</p>
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+st.markdown("---")
+
+# ---------------------------------------------------------------------------
+# ── SECTION 3 (Member 2 — Tanmaya): COLLISION CHECK ENGINE
+# ---------------------------------------------------------------------------
+st.markdown("## ⚡ Collision Check & Dynamic Memory Reflection")
+st.caption("Built by **Tanmaya (Member 2)** — Collision Engine & Dynamic Reflection Lead")
+
+# SOC-2 state (shared memory object — same instance Tanmaya's app uses)
+soc2_comm = next((c for c in memory.commitments if c["id"] == "COMM-02"), None)
+is_soc2_sent = soc2_comm and soc2_comm.get("status") == "Completed"
+
+req_col, btn_col = st.columns([3, 1])
+
+with req_col:
+    default_prompt = "Can you give us 40% off and get us live into production in two weeks?"
+    user_request = st.text_area(
+        "Incoming Customer Negotiation Request:",
+        value=default_prompt,
+        height=85,
+        key="collision_input",
+    )
+
+with btn_col:
+    st.markdown("<br>", unsafe_allow_html=True)
+    check_btn = st.button(
+        "🔍 Run Collision Check", type="primary", use_container_width=True, key="run_collision"
+    )
+
+    if not is_soc2_sent:
+        mark_btn = st.button(
+            "🚀 Mark SOC-2 Sent to Nadia",
+            use_container_width=True,
+            key="mark_soc2",
+            help="Simulate delivering the promised SOC-2 report — watch the collision cards update live.",
+        )
+        if mark_btn:
+            memory.mark_soc2_sent()
+            st.session_state.memory_updated_event = True
+            # Also refresh the pre-call brief automatically if one exists
+            if st.session_state.pre_call_brief:
+                st.session_state.pre_call_brief = None  # signal to regenerate
+            st.rerun()
+    else:
+        st.button("✅ SOC-2 Delivered", disabled=True, use_container_width=True)
+        reset_btn = st.button(
+            "🔄 Reset Demo",
+            use_container_width=True,
+            key="reset_demo",
+            help="Reset memory to Overdue state to replay the demo.",
+        )
+        if reset_btn:
+            st.session_state.deal_memory = DealMemoryBank()
+            st.session_state.memory_updated_event = False
+            st.session_state.memory_seeded = False
+            st.session_state.pre_call_brief = None
+            st.rerun()
+
+# Dynamic memory reaction banner
+if is_soc2_sent:
+    st.success(
+        "🎉 **DYNAMIC MEMORY REACTION TRIGGERED!** "
+        "SOC-2 Report marked Delivered to Nadia Chen. "
+        "Collision Engine re-evaluated: 🔴 Security Blocker → ✅ Cleared. "
+        "Strategic guidance shifted to offensive $49k closing plan."
+    )
+
+# Run collision check and render Tanmaya's components
+context = memory.get_all_context()
+results = detector.check_collisions(customer_request=user_request, deal_context=context)
+
+render_collision_cards(results)
+st.markdown("---")
+render_actionable_guidance(results)
+
+# ---------------------------------------------------------------------------
+# Sidebar — audit log (debug helper during demo)
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ── SECTION 4 (Member 3 — Rupika): COMMITMENT LEDGER + PREDICTIVE FORESIGHT
+# ---------------------------------------------------------------------------
+import json as _json
+from pathlib import Path as _Path
+
+_data_path = _Path(__file__).resolve().parent.parent / "data" / "acme_calls_7_9.json"
+
+try:
+    _deal_data = _json.loads(_data_path.read_text(encoding="utf-8"))
+
+    st.markdown("## 📒 Living Commitment Ledger")
+    st.caption("Built by **Rupika (Member 3)** — Commitment Tracking & Predictive Foresight Lead")
+
+    _ledger = build_commitment_ledger(_deal_data)
+    _commitments = _ledger.get("commitments", [])
+
+    if _commitments:
+        _cols = ["title", "promised_by", "recipient", "status", "call_ref"]
+        _rows = [{k: c.get(k, "") for k in _cols} for c in _commitments]
+        import pandas as _pd
+        st.dataframe(_pd.DataFrame(_rows).rename(columns={
+            "title": "Commitment", "promised_by": "Promised By",
+            "recipient": "Recipient", "status": "Status", "call_ref": "Evidence"
+        }), use_container_width=True)
+    else:
+        st.info("No commitments found in deal data.")
 
     st.markdown("---")
 
-    # Metrics Summary Row
-    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-    with m_col1:
-        st.metric(label="Critical Blockers", value=results["active_blockers_count"])
-    with m_col2:
-        st.metric(label="Policy & Budget Warnings", value=results["warnings_count"])
-    with m_col3:
-        st.metric(label="Historical Calls Scanned", value="9 Interactions")
-    with m_col4:
-        st.metric(label="Decision Confidence", value="100% Grounded")
+    st.markdown("## 🔮 Predictive Foresight")
+    st.caption("Anticipates the customer's next moves before they make them.")
 
-    st.markdown("### 🚨 Detected Collisions")
+    _foresight = build_predictive_foresight(_deal_data)
 
-    # Display Collisions
-    for col in results["collisions"]:
-        with st.container():
-            if col["severity"] == "RED":
-                st.error(f"**{col['badge']}**: {col['title']}")
-            elif col["severity"] == "ORANGE":
-                st.warning(f"**{col['badge']}**: {col['title']}")
-            elif col["severity"] == "YELLOW":
-                st.warning(f"**{col['badge']}**: {col['title']}")
-            elif col["severity"] == "GREEN":
-                st.success(f"**{col['badge']}**: {col['title']}")
+    pf_tab1, pf_tab2, pf_tab3 = st.tabs(
+        ["🔮 Anticipated Questions", "🎯 Counter-Questions", "⚠️ Risks & Deadlines"]
+    )
 
-            st.write(col["description"])
-            
-            with st.expander(f"🔍 View Evidence from Hindsight Memory ({len(col['evidence'])} verified sources)"):
-                for ev in col["evidence"]:
-                    st.markdown(f"- 📌 `{ev}`")
-                st.caption(f"**Business Impact:** {col['impact']}")
-            st.markdown("<br>", unsafe_allow_html=True)
+    with pf_tab1:
+        for q in _foresight.get("predicted_questions", []):
+            with st.expander(f"❓ {q.get('question', '')}"):
+                st.markdown(f"**Rationale:** {q.get('rationale', '')}")
 
-    # Strategic Action & Recommended Reply Draft
-    st.markdown("### 🎯 Strategic Guidance & Recommended Reply")
-    col_strat1, col_strat2 = st.columns([1, 1])
+    with pf_tab2:
+        for q in _foresight.get("counter_questions", []):
+            with st.expander(f"🎯 {q.get('question', '')}"):
+                st.markdown(f"**Why ask this:** {q.get('rationale', '')}")
 
-    with col_strat1:
-        st.info(f"**What You Should Do:**\n\n{results['recommended_action']}")
+    with pf_tab3:
+        for r in _foresight.get("risks", []):
+            st.warning(f"**{r.get('risk', '')}** — {r.get('mitigation', '')}")
+        for d in _foresight.get("deadlines", []):
+            st.info(f"📅 **{d.get('deadline', '')}** — {d.get('description', '')}")
 
-    with col_strat2:
-        st.text_area(
-            "Drafted Customer Reply (Memory-Aligned):",
-            value=results["recommended_reply_draft"],
-            height=200
+except FileNotFoundError:
+    st.warning("⚠️ acme_calls_7_9.json not found — Rupika's sections require this data file.")
+
+st.markdown("---")
+
+# ---------------------------------------------------------------------------
+# Sidebar — audit log
+# ---------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown("### 🗃️ Hindsight Audit Log")
+    st.caption("Last 10 retain() calls this session")
+    log = memory.memory_audit_log[-10:]
+    if not log:
+        st.write("No events yet.")
+    for entry in reversed(log):
+        st.markdown(
+            f"**{entry['category']}** `{entry['timestamp'][:19]}`\n\n"
+            f"{entry['content'][:120]}…"
         )
-
-    # Predictive Foresight Panel
-    st.markdown("---")
-    st.markdown("### 🔮 Predictive Foresight: Anticipate the Next Move")
-    st.caption("Foresight analyzes unaddressed stakeholder concerns to predict what the buyer will ask next.")
-
-    pred = results["predictive_foresight"]
-    col_pred1, col_pred2 = st.columns(2)
-
-    with col_pred1:
-        st.markdown("#### 💬 Anticipated Next Buyer Questions")
-        for q in pred["anticipated_next_questions"]:
-            st.markdown(f"**{q['stakeholder']}:** *\"{q['question']}\"*")
-            st.caption(f"↳ **Why:** {q['why']}")
-            st.markdown("<hr style='margin: 4px 0;'>", unsafe_allow_html=True)
-
-    with col_pred2:
-        st.markdown("#### 🎯 High-Leverage Counter-Questions to Ask")
-        for cq in pred["strategic_counter_questions"]:
-            st.markdown(f"**Target:** `{cq['target']}`")
-            st.markdown(f"👉 *\"{cq['counter_question']}\"*")
-            st.caption(f"↳ **Leverage:** {cq['leverage']}")
-            st.markdown("<hr style='margin: 4px 0;'>", unsafe_allow_html=True)
-
-    st.info(f"💡 **Similar Deal Insight:** {pred['similar_deal_insights']}")
-
-
-# ================= TAB 2: PRE-CALL BRIEFING =================
-with tab2:
-    st.subheader("📋 10-Second Pre-Call Executive Briefing")
-    st.markdown("Never waste hours re-reading CRM notes again. Generate an instant briefing before walking into a meeting.")
-
-    if st.button("⚡ Generate Pre-Call Brief for ACME Corp", type="primary"):
-        brief = collision_engine.generate_pre_call_brief(memory_bank=st.session_state.deal_memory)
-
-        col_b1, col_b2 = st.columns(2)
-        with col_b1:
-            st.markdown("#### 👥 Meeting Dossier: Who is in the Room")
-            for sh in brief["stakeholders"]:
-                st.markdown(f"- **{sh['name']}** ({sh['title']}): `{sh['sentiment']}`")
-                st.caption(f"  Focus: {sh['key_focus']}")
-
-            st.markdown("#### ⚔️ Competitor Threat Analysis")
-            comp = brief["competitor_watch"]
-            st.warning(f"**Competitor:** {comp['competitor']} | **Bid:** {comp['bid']}")
-            st.markdown(f"**Counter-Strategy:** {comp['counter_strategy']}")
-
-        with col_b2:
-            st.markdown("#### ⚠️ Critical Commitments & Risks")
-            for r in brief["critical_risks"]:
-                st.error(r)
-
-            st.markdown("#### 🎯 Learned Winning Tactics from Past Deals")
-            for t in brief["learned_winning_tactics"]:
-                st.success(t)
-
-
-# ================= TAB 3: COMMITMENT LEDGER =================
-with tab3:
-    st.subheader("📑 Living Commitment Ledger")
-    st.markdown("An auditable log of promises made across all 8 weeks. Status is verified based on recorded evidence.")
-
-    for comm in st.session_state.deal_memory.commitments:
-        col_c1, col_c2, col_c3, col_c4 = st.columns([3, 2, 2, 2])
-        with col_c1:
-            st.markdown(f"**{comm['title']}** (`{comm['id']}`)")
-            st.caption(f"Promised by: {comm['promised_by']} → {comm['recipient']}")
-        with col_c2:
-            st.markdown(f"**Call Reference:** {comm['call_ref']}")
-            st.caption(f"Date: {comm['date_promised']}")
-        with col_c3:
-            if comm["status"] == "Completed":
-                st.markdown("<span class='badge-green'>✅ Completed</span>", unsafe_allow_html=True)
-            elif comm["status"] == "Overdue":
-                st.markdown("<span class='badge-red'>⚠️ Overdue</span>", unsafe_allow_html=True)
-            else:
-                st.markdown("<span class='badge-yellow'>⏳ Pending</span>", unsafe_allow_html=True)
-        with col_c4:
-            st.caption(f"**Audit Note:** {comm['status_notes']}")
         st.divider()
-
-
-# ================= TAB 4: DEAL HISTORY EXPLORER =================
-with tab4:
-    st.subheader("📜 8 Weeks of ACME Corp Deal Memory")
-    st.markdown("Foresight retains every conversation, attendee, and objection in Hindsight memory.")
-
-    for call in st.session_state.deal_memory.interactions:
-        with st.expander(f"📞 Call #{call['call_id']}: {call['title']} ({call['date']})"):
-            st.markdown(f"**Attendees:** {', '.join(call['attendees'])}")
-            st.write(call["summary"])
-            st.markdown("**Key Memorized Takeaways:**")
-            for kw in call["key_takeaways"]:
-                st.markdown(f"- 📌 `{kw}`")

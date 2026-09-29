@@ -26,6 +26,10 @@ from memory import DealMemoryBank
 from tanmaya.collision_detector import TanmayaCollisionDetector
 from tanmaya.collision_ui import render_collision_cards, render_actionable_guidance
 
+# Member 3 (Rupika) components
+from commitment_ledger import build_commitment_ledger
+from predictive_foresight import build_predictive_foresight
+
 # ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
@@ -366,6 +370,69 @@ render_actionable_guidance(results)
 
 # ---------------------------------------------------------------------------
 # Sidebar — audit log (debug helper during demo)
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ── SECTION 4 (Member 3 — Rupika): COMMITMENT LEDGER + PREDICTIVE FORESIGHT
+# ---------------------------------------------------------------------------
+import json as _json
+from pathlib import Path as _Path
+
+_data_path = _Path(__file__).resolve().parent.parent / "data" / "acme_calls_7_9.json"
+
+try:
+    _deal_data = _json.loads(_data_path.read_text(encoding="utf-8"))
+
+    st.markdown("## 📒 Living Commitment Ledger")
+    st.caption("Built by **Rupika (Member 3)** — Commitment Tracking & Predictive Foresight Lead")
+
+    _ledger = build_commitment_ledger(_deal_data)
+    _commitments = _ledger.get("commitments", [])
+
+    if _commitments:
+        _cols = ["title", "promised_by", "recipient", "status", "call_ref"]
+        _rows = [{k: c.get(k, "") for k in _cols} for c in _commitments]
+        import pandas as _pd
+        st.dataframe(_pd.DataFrame(_rows).rename(columns={
+            "title": "Commitment", "promised_by": "Promised By",
+            "recipient": "Recipient", "status": "Status", "call_ref": "Evidence"
+        }), use_container_width=True)
+    else:
+        st.info("No commitments found in deal data.")
+
+    st.markdown("---")
+
+    st.markdown("## 🔮 Predictive Foresight")
+    st.caption("Anticipates the customer's next moves before they make them.")
+
+    _foresight = build_predictive_foresight(_deal_data)
+
+    pf_tab1, pf_tab2, pf_tab3 = st.tabs(
+        ["🔮 Anticipated Questions", "🎯 Counter-Questions", "⚠️ Risks & Deadlines"]
+    )
+
+    with pf_tab1:
+        for q in _foresight.get("predicted_questions", []):
+            with st.expander(f"❓ {q.get('question', '')}"):
+                st.markdown(f"**Rationale:** {q.get('rationale', '')}")
+
+    with pf_tab2:
+        for q in _foresight.get("counter_questions", []):
+            with st.expander(f"🎯 {q.get('question', '')}"):
+                st.markdown(f"**Why ask this:** {q.get('rationale', '')}")
+
+    with pf_tab3:
+        for r in _foresight.get("risks", []):
+            st.warning(f"**{r.get('risk', '')}** — {r.get('mitigation', '')}")
+        for d in _foresight.get("deadlines", []):
+            st.info(f"📅 **{d.get('deadline', '')}** — {d.get('description', '')}")
+
+except FileNotFoundError:
+    st.warning("⚠️ acme_calls_7_9.json not found — Rupika's sections require this data file.")
+
+st.markdown("---")
+
+# ---------------------------------------------------------------------------
+# Sidebar — audit log
 # ---------------------------------------------------------------------------
 with st.sidebar:
     st.markdown("### 🗃️ Hindsight Audit Log")
