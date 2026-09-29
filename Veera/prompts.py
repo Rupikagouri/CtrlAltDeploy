@@ -1,17 +1,21 @@
 """
 prompts.py - Prompt Templates for Foresight Deal Intelligence.
 
-Contains system prompts and user prompt builders for all three AI engines:
-- Pre-Call Briefing
-- Collision Detection
-- Predictive Foresight
+Authored by Member 1 — Deal Memory Ingestion & Pre-Call Intelligence.
+
+Contains:
+- PRE_CALL_BRIEF_SYSTEM_PROMPT: System persona for the pre-call briefing LLM.
+- build_pre_call_brief_prompt(): Assembles a structured user prompt from live deal memory.
+
+Design principle: All outputs must be strictly grounded in retrieved Hindsight memory.
+The LLM must NOT invent facts, numbers, or stakeholder statements.
 """
 
 from typing import List, Dict, Any
 
 
 # ---------------------------------------------------------------------------
-# System Prompts
+# System prompt — sets the LLM persona and grounding constraint
 # ---------------------------------------------------------------------------
 
 PRE_CALL_BRIEF_SYSTEM_PROMPT = """You are Foresight, an AI deal intelligence assistant for enterprise B2B sales.
@@ -28,33 +32,9 @@ CRITICAL RULES:
 5. Output ONLY valid JSON matching the schema described. Do not include markdown fences or commentary.
 """
 
-COLLISION_DETECTION_SYSTEM_PROMPT = """You are Foresight's Collision Detection Engine powered by Hindsight.
-Your objective is to evaluate incoming customer requests or negotiation demands against:
-1. Deal Memory (Past conversations, promises, stakeholder statements, budgets, competitor bids)
-2. Company Knowledge Base (Standard timelines, margin thresholds, security policies)
-
-For any request, detect and categorize collisions into:
-- 🔴 SECURITY BLOCKER: Violations of security protocols, unverified access, or unfulfilled compliance promises.
-- 🟠 TIMELINE CONFLICT: Impossible lead times, violation of standard engineering baselines, or unpromised delivery dates.
-- 🟡 COMMERCIAL & PRICE ALIGNMENT: Discounts violating margin authority, budget mismatch, or predatory terms.
-
-You MUST cite exact evidence (which call, which speaker, what quote) for every collision detected.
-State "No fulfilment recorded" when a promise exists in memory without verified completion.
-Provide a clear, strategic recommendation on what the sales rep should say and do next.
-"""
-
-PREDICTIVE_FORESIGHT_SYSTEM_PROMPT = """You are Foresight's Predictive Negotiation Engine.
-When a sales rep is bombarded with customer demands or questions, analyze the deal state, stakeholder personalities, and unaddressed risks to forecast future moves.
-
-You must output:
-1. 🔮 Anticipated Next Questions: The next 2-3 specific trap questions the buyer's procurement/CFO/security will ask next, with the rationale.
-2. 💡 Similar Inquiries from Past Closed Deals: Context on how similar buyer demands played out historically.
-3. 🎯 Strategic Counter-Questions: 2 high-leverage counter-questions the sales rep should immediately ask the internal champion to regain negotiation leverage.
-"""
-
 
 # ---------------------------------------------------------------------------
-# User prompt builder for Pre-Call Brief
+# User prompt builder — assembles deal context into a structured LLM prompt
 # ---------------------------------------------------------------------------
 
 def build_pre_call_brief_prompt(
@@ -64,6 +44,15 @@ def build_pre_call_brief_prompt(
     deal_metadata: Dict[str, Any],
     company_kb: Dict[str, Any],
 ) -> str:
+    """
+    Builds the user-turn prompt for the pre-call briefing LLM call.
+
+    All inputs come directly from DealMemoryBank.recall() and DealMemoryBank.get_all_context(),
+    ensuring every fact in the brief traces back to indexed Hindsight memory.
+
+    Returns a plain-text prompt string to be sent as the user message to Groq.
+    """
+
     # --- Format stakeholder dossier ---
     stakeholder_lines = []
     for s in stakeholders:
@@ -74,7 +63,7 @@ def build_pre_call_brief_prompt(
         )
     stakeholder_block = "\n".join(stakeholder_lines) if stakeholder_lines else "  No stakeholder data in memory."
 
-    # --- Format recalled memory snippets ---
+    # --- Format recalled memory snippets (interactions + commitments) ---
     memory_lines = []
     for mem in recalled_memories:
         if mem.get("type") == "interaction":
@@ -90,7 +79,7 @@ def build_pre_call_brief_prompt(
             )
     memory_block = "\n".join(memory_lines) if memory_lines else "  No recalled memories."
 
-    # --- Format open commitments ---
+    # --- Format open commitments summary ---
     open_commitments = [c for c in commitments if c.get("status") != "Completed"]
     commitment_lines = []
     for c in open_commitments:
@@ -102,7 +91,7 @@ def build_pre_call_brief_prompt(
         "\n".join(commitment_lines) if commitment_lines else "  All commitments fulfilled."
     )
 
-    # --- Company baseline ---
+    # --- Company baseline for grounding ---
     deploy_policy = company_kb.get("deployment_policy", {})
     pricing_policy = company_kb.get("pricing_and_discount_policy", {})
     deploy_summary = (

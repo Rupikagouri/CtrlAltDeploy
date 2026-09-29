@@ -1,0 +1,887 @@
+{
+  "customer": "ACME Corporation",
+  "deal_id": "ACME-FORESIGHT-2026",
+  "product": "Foresight AI Sales Assistant (powered by Hindsight Memory)",
+  "context_summary": "Calls 7–9 cover procurement entry, budget ceiling discovery, NimbusAI competitive pressure, discount negotiation, deployment timeline urgency, and unresolved SOC-2 security review. Prior calls (1–6) established product fit with Sarah Chen (VP Sales Ops) and a technical pilot with David Okonkwo (CTO).",
+  "calls": [
+    {
+      "call_id": "ACME-CALL-007",
+      "date": "2026-09-10T14:00:00-04:00",
+      "duration_minutes": 47,
+      "call_type": "procurement_introduction",
+      "participants": [
+        {
+          "name": "Sarah Chen",
+          "role": "VP Sales Operations",
+          "company": "ACME Corporation",
+          "email": "sarah.chen@acme.com"
+        },
+        {
+          "name": "Marcus Webb",
+          "role": "Senior Procurement Manager",
+          "company": "ACME Corporation",
+          "email": "marcus.webb@acme.com"
+        },
+        {
+          "name": "Jamie Rivera",
+          "role": "Account Executive",
+          "company": "Hindsight Labs",
+          "email": "jamie.rivera@hindsightlabs.io"
+        }
+      ],
+      "transcript": [
+        {
+          "timestamp": "00:00:12",
+          "speaker": "Sarah Chen",
+          "text": "Marcus, thanks for joining. Jamie, this is Marcus Webb from procurement. He's taking over commercial review now that we've cleared the technical pilot."
+        },
+        {
+          "timestamp": "00:00:28",
+          "speaker": "Marcus Webb",
+          "text": "Good to meet you, Jamie. I've reviewed the pilot summary David sent over. Before we go further, I need to understand where you land on price. Finance has capped this initiative at fifty thousand dollars for year one — all-in, including implementation."
+        },
+        {
+          "timestamp": "00:01:05",
+          "speaker": "Jamie Rivera",
+          "text": "Understood. Our standard enterprise tier for a team ACME's size is sixty-two thousand annually. That includes Hindsight Memory ingestion for up to five hundred reps and the Foresight predictive layer."
+        },
+        {
+          "timestamp": "00:01:42",
+          "speaker": "Marcus Webb",
+          "text": "That's twelve thousand over ceiling. We also have a competing proposal from NimbusAI at forty-eight thousand for a comparable deployment. They're offering a ninety-day pilot-to-production path."
+        },
+        {
+          "timestamp": "00:02:18",
+          "speaker": "Sarah Chen",
+          "text": "To be transparent, NimbusAI doesn't have the commitment-tracking piece we liked in Foresight. But procurement needs apples-to-apples numbers before we can get sign-off."
+        },
+        {
+          "timestamp": "00:03:01",
+          "speaker": "Jamie Rivera",
+          "text": "Fair. Let me take the budget constraint back internally. I can't commit to matching NimbusAI today, but I can explore a revised package — possibly trimming seats or phasing features."
+        },
+        {
+          "timestamp": "00:04:15",
+          "speaker": "Marcus Webb",
+          "text": "We need a written quote within five business days. Also, procurement requires three references from companies with similar CRM stacks — we're on Salesforce Enterprise and Gong."
+        },
+        {
+          "timestamp": "00:05:30",
+          "speaker": "Jamie Rivera",
+          "text": "I'll send reference contacts by end of week. We have three Salesforce plus Gong customers I can introduce."
+        },
+        {
+          "timestamp": "00:06:45",
+          "speaker": "Marcus Webb",
+          "text": "One more thing — Elena from InfoSec flagged that your SOC-2 Type II report wasn't in the data room David shared. That's a hard gate before any contract signature."
+        },
+        {
+          "timestamp": "00:07:20",
+          "speaker": "Jamie Rivera",
+          "text": "We completed SOC-2 Type II in Q2. I'll upload the auditor's report to your data room and cc Elena directly."
+        },
+        {
+          "timestamp": "00:08:05",
+          "speaker": "Sarah Chen",
+          "text": "Timeline-wise, our sales kickoff is October twentieth. If we're going with Foresight, we need reps live before that — ideally October fifteenth."
+        },
+        {
+          "timestamp": "00:08:40",
+          "speaker": "Jamie Rivera",
+          "text": "October fifteenth is tight but doable if we parallel-track security review and contracting. I'll include a deployment timeline in the revised proposal."
+        },
+        {
+          "timestamp": "00:09:55",
+          "speaker": "Marcus Webb",
+          "text": "Let's reconvene once we have pricing and the SOC-2 doc. I'll loop in Elena for the security call."
+        }
+      ],
+      "commitments": [
+        {
+          "commitment_id": "C7-001",
+          "description": "Deliver revised written quote within five business days addressing ACME's $50,000 budget ceiling",
+          "made_by": "Jamie Rivera",
+          "made_to": "Marcus Webb",
+          "due_date": "2026-09-17",
+          "category": "pricing",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "email",
+            "date": "2026-09-16T11:22:00-04:00",
+            "reference": "email-thread-ACME-QUOTE-0916",
+            "summary": "Jamie sent revised proposal at $52,000 with phased discount path to $49,500 upon signature by Sep 30"
+          }
+        },
+        {
+          "commitment_id": "C7-002",
+          "description": "Provide three customer references using Salesforce Enterprise and Gong",
+          "made_by": "Jamie Rivera",
+          "made_to": "Marcus Webb",
+          "due_date": "2026-09-12",
+          "category": "references",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "email",
+            "date": "2026-09-11T16:45:00-04:00",
+            "reference": "email-thread-ACME-REFS-0911",
+            "summary": "Intro emails sent to VP Sales Ops at Meridian Health, Apex Logistics, and Brightwave SaaS — all confirmed Gong + Salesforce integrations"
+          }
+        },
+        {
+          "commitment_id": "C7-003",
+          "description": "Upload SOC-2 Type II auditor's report to ACME data room and cc Elena Vasquez",
+          "made_by": "Jamie Rivera",
+          "made_to": "Elena Vasquez",
+          "due_date": "2026-09-12",
+          "category": "security",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "document_upload",
+            "date": "2026-09-11T09:30:00-04:00",
+            "reference": "acme-dataroom/doc/soc2-type2-hindsight-2026.pdf",
+            "summary": "SOC-2 Type II report uploaded; Elena acknowledged receipt but noted supplemental questionnaire still required"
+          }
+        },
+        {
+          "commitment_id": "C7-004",
+          "description": "Include deployment timeline targeting October 15 go-live in revised proposal",
+          "made_by": "Jamie Rivera",
+          "made_to": "Sarah Chen",
+          "due_date": "2026-09-17",
+          "category": "deployment",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "document",
+            "date": "2026-09-16T11:22:00-04:00",
+            "reference": "proposal-ACME-FORESIGHT-v2.pdf",
+            "summary": "Proposal appendix includes 5-week deployment plan with Oct 15 target assuming contract signed by Sep 30"
+          }
+        }
+      ],
+      "objections": [
+        {
+          "objection_id": "O7-001",
+          "raised_by": "Marcus Webb",
+          "topic": "budget_ceiling",
+          "summary": "ACME finance capped year-one spend at $50,000 all-in; Hindsight quote of $62,000 exceeds ceiling by $12,000",
+          "severity": "high",
+          "status": "open"
+        },
+        {
+          "objection_id": "O7-002",
+          "raised_by": "Marcus Webb",
+          "topic": "competitive_pricing",
+          "summary": "NimbusAI quoted $48,000 with 90-day pilot-to-production path",
+          "severity": "high",
+          "status": "open"
+        },
+        {
+          "objection_id": "O7-003",
+          "raised_by": "Marcus Webb",
+          "topic": "security_compliance",
+          "summary": "SOC-2 Type II report missing from data room; required before contract signature",
+          "severity": "high",
+          "status": "partially_addressed"
+        },
+        {
+          "objection_id": "O7-004",
+          "raised_by": "Sarah Chen",
+          "topic": "deployment_timeline",
+          "summary": "Sales kickoff October 20 requires reps live on Foresight by October 15",
+          "severity": "medium",
+          "status": "open"
+        }
+      ],
+      "questions_and_concerns": [
+        {
+          "id": "Q7-001",
+          "raised_by": "Marcus Webb",
+          "question": "Can Hindsight match or beat NimbusAI's $48,000 all-in pricing?",
+          "predictive_signal": "pricing_comparison",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q7-002",
+          "raised_by": "Marcus Webb",
+          "question": "What is included vs excluded in year-one pricing — implementation, training, support?",
+          "predictive_signal": "total_cost_of_ownership",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q7-003",
+          "raised_by": "Marcus Webb",
+          "question": "Do you have references on Salesforce Enterprise plus Gong?",
+          "predictive_signal": "integration_validation",
+          "likely_follow_up": false
+        }
+      ],
+      "outcomes": {
+        "summary": "Procurement formally entered the deal. Budget ceiling of $50,000 and NimbusAI competitive quote at $48,000 established as primary commercial blockers. SOC-2 report delivered but security review incomplete. Next step: pricing negotiation call with revised quote.",
+        "next_meeting": "2026-09-18T15:00:00-04:00",
+        "deal_stage": "negotiation",
+        "sentiment": "cautiously_positive"
+      }
+    },
+    {
+      "call_id": "ACME-CALL-008",
+      "date": "2026-09-18T15:00:00-04:00",
+      "duration_minutes": 52,
+      "call_type": "pricing_and_discount_negotiation",
+      "participants": [
+        {
+          "name": "Sarah Chen",
+          "role": "VP Sales Operations",
+          "company": "ACME Corporation",
+          "email": "sarah.chen@acme.com"
+        },
+        {
+          "name": "Marcus Webb",
+          "role": "Senior Procurement Manager",
+          "company": "ACME Corporation",
+          "email": "marcus.webb@acme.com"
+        },
+        {
+          "name": "David Okonkwo",
+          "role": "Chief Technology Officer",
+          "company": "ACME Corporation",
+          "email": "david.okonkwo@acme.com"
+        },
+        {
+          "name": "Jamie Rivera",
+          "role": "Account Executive",
+          "company": "Hindsight Labs",
+          "email": "jamie.rivera@hindsightlabs.io"
+        },
+        {
+          "name": "Priya Nair",
+          "role": "Solutions Engineer",
+          "company": "Hindsight Labs",
+          "email": "priya.nair@hindsightlabs.io"
+        }
+      ],
+      "transcript": [
+        {
+          "timestamp": "00:00:08",
+          "speaker": "Marcus Webb",
+          "text": "Jamie, we received the revised quote at fifty-two thousand. That's still two thousand over our cap. NimbusAI held firm at forty-eight. What can you do?"
+        },
+        {
+          "timestamp": "00:00:45",
+          "speaker": "Jamie Rivera",
+          "text": "I got approval for a signature discount — if ACME signs by September thirtieth, we can bring year-one to forty-nine thousand five hundred. That includes implementation and quarterly business reviews."
+        },
+        {
+          "timestamp": "00:01:30",
+          "speaker": "Sarah Chen",
+          "text": "Forty-nine five is closer, but Marcus, that's still fifteen hundred over. Jamie, is there any room on seat count? We piloted with forty reps but the full rollout is two hundred."
+        },
+        {
+          "timestamp": "00:02:10",
+          "speaker": "Jamie Rivera",
+          "text": "The proposal covers two hundred seats at that price. NimbusAI's quote is for one hundred twenty seats — you'd hit overage fees in Q2."
+        },
+        {
+          "timestamp": "00:02:55",
+          "speaker": "Marcus Webb",
+          "text": "Good catch. Can you put the seat comparison and overage math in writing? Procurement needs it for the side-by-side."
+        },
+        {
+          "timestamp": "00:03:20",
+          "speaker": "Jamie Rivera",
+          "text": "Absolutely — Priya will send a competitive comparison doc by tomorrow."
+        },
+        {
+          "timestamp": "00:04:05",
+          "speaker": "David Okonkwo",
+          "text": "On the technical side, I'm still favoring Foresight because of the commitment ledger. NimbusAI's memory layer is shallow — it won't track what we promised customers across calls."
+        },
+        {
+          "timestamp": "00:04:40",
+          "speaker": "Sarah Chen",
+          "text": "Agreed, but David, we can't go over budget. Finance was very clear."
+        },
+        {
+          "timestamp": "00:05:15",
+          "speaker": "Marcus Webb",
+          "text": "What about payment terms? NimbusAI offered net-sixty. We're on net-thirty with most vendors."
+        },
+        {
+          "timestamp": "00:05:48",
+          "speaker": "Jamie Rivera",
+          "text": "I can request net-forty-five as a middle ground. I'll need VP approval — I'll confirm by Monday."
+        },
+        {
+          "timestamp": "00:06:30",
+          "speaker": "David Okonkwo",
+          "text": "Deployment is my bigger worry. Priya, walk me through the five-week plan. We have a hard deadline of October fifteenth."
+        },
+        {
+          "timestamp": "00:07:10",
+          "speaker": "Priya Nair",
+          "text": "Week one is Salesforce and Gong connector setup. Week two is Hindsight Memory backfill for the last ninety days of call data. Weeks three and four are rep onboarding and playbook tuning. Week five is go-live with hypercare support."
+        },
+        {
+          "timestamp": "00:08:00",
+          "speaker": "David Okonkwo",
+          "text": "That assumes we sign by September thirtieth. What if legal takes an extra week?"
+        },
+        {
+          "timestamp": "00:08:25",
+          "speaker": "Priya Nair",
+          "text": "We can compress onboarding to two weeks instead of two by running parallel workstreams, but we'd need a dedicated ACME IT contact assigned full-time."
+        },
+        {
+          "timestamp": "00:09:00",
+          "speaker": "David Okonkwo",
+          "text": "I can assign Raj from my team. Jamie, if we slip on legal, will you hold the forty-nine-five pricing?"
+        },
+        {
+          "timestamp": "00:09:30",
+          "speaker": "Jamie Rivera",
+          "text": "I'll fight for a one-week extension on the discount deadline if legal is the blocker. No promises, but I'll advocate internally."
+        },
+        {
+          "timestamp": "00:10:15",
+          "speaker": "Marcus Webb",
+          "text": "Elena still hasn't cleared security. She said the SOC-2 report covers infrastructure but she needs your subprocessor list and a completed SIG Lite questionnaire."
+        },
+        {
+          "timestamp": "00:10:50",
+          "speaker": "Jamie Rivera",
+          "text": "We have a standard SIG Lite response. I'll have our security team send it by end of day Friday."
+        },
+        {
+          "timestamp": "00:11:30",
+          "speaker": "Sarah Chen",
+          "text": "Let's schedule a security review call with Elena for next week. And Marcus, can we get legal reviewing the MSA in parallel?"
+        },
+        {
+          "timestamp": "00:12:00",
+          "speaker": "Marcus Webb",
+          "text": "I'll push legal today. Jamie, send the NimbusAI comparison and the SIG Lite by Friday or we pause this deal."
+        }
+      ],
+      "commitments": [
+        {
+          "commitment_id": "C8-001",
+          "description": "Send NimbusAI competitive comparison including seat counts and overage fee analysis",
+          "made_by": "Priya Nair",
+          "made_to": "Marcus Webb",
+          "due_date": "2026-09-19",
+          "category": "competitive_intel",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "document",
+            "date": "2026-09-19T10:15:00-04:00",
+            "reference": "acme-dataroom/doc/nimbusai-vs-foresight-comparison.pdf",
+            "summary": "12-page comparison doc delivered showing NimbusAI 120-seat limit and projected $61,200 TCO at 200 reps vs Foresight $49,500"
+          }
+        },
+        {
+          "commitment_id": "C8-002",
+          "description": "Confirm net-45 payment terms with VP approval",
+          "made_by": "Jamie Rivera",
+          "made_to": "Marcus Webb",
+          "due_date": "2026-09-22",
+          "category": "commercial_terms",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "email",
+            "date": "2026-09-22T09:05:00-04:00",
+            "reference": "email-thread-ACME-NET45-0922",
+            "summary": "VP Finance approved net-45 payment terms for ACME deal"
+          }
+        },
+        {
+          "commitment_id": "C8-003",
+          "description": "Deliver completed SIG Lite questionnaire and subprocessor list to Elena Vasquez",
+          "made_by": "Jamie Rivera",
+          "made_to": "Elena Vasquez",
+          "due_date": "2026-09-20",
+          "category": "security",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "document_upload",
+            "date": "2026-09-19T17:40:00-04:00",
+            "reference": "acme-dataroom/doc/hindsight-sig-lite-2026.xlsx",
+            "summary": "SIG Lite and subprocessor list uploaded; Elena replied with 14 follow-up questions (unanswered as of Call 9)"
+          }
+        },
+        {
+          "commitment_id": "C8-004",
+          "description": "Advocate internally for one-week extension on $49,500 signature discount if legal delays signing past September 30",
+          "made_by": "Jamie Rivera",
+          "made_to": "David Okonkwo",
+          "due_date": "2026-09-30",
+          "category": "pricing",
+          "status": "pending",
+          "fulfilment_evidence": null
+        },
+        {
+          "commitment_id": "C8-005",
+          "description": "Schedule security review call with Elena Vasquez for the week of September 22",
+          "made_by": "Jamie Rivera",
+          "made_to": "Elena Vasquez",
+          "due_date": "2026-09-22",
+          "category": "security",
+          "status": "unfulfilled",
+          "fulfilment_evidence": null
+        }
+      ],
+      "objections": [
+        {
+          "objection_id": "O8-001",
+          "raised_by": "Marcus Webb",
+          "topic": "budget_ceiling",
+          "summary": "Revised quote of $49,500 still $1,500 above $50,000 cap when accounting for ACME's internal expense allocation markup of 3%",
+          "severity": "high",
+          "status": "open"
+        },
+        {
+          "objection_id": "O8-002",
+          "raised_by": "Marcus Webb",
+          "topic": "payment_terms",
+          "summary": "NimbusAI offered net-60; ACME prefers extended payment terms",
+          "severity": "medium",
+          "status": "partially_addressed"
+        },
+        {
+          "objection_id": "O8-003",
+          "raised_by": "David Okonkwo",
+          "topic": "deployment_timeline",
+          "summary": "Five-week deployment plan at risk if legal review delays contract signing beyond September 30",
+          "severity": "high",
+          "status": "open"
+        },
+        {
+          "objection_id": "O8-004",
+          "raised_by": "Marcus Webb",
+          "topic": "security_compliance",
+          "summary": "Elena requires SIG Lite and subprocessor list; SOC-2 alone insufficient for sign-off",
+          "severity": "high",
+          "status": "partially_addressed"
+        }
+      ],
+      "questions_and_concerns": [
+        {
+          "id": "Q8-001",
+          "raised_by": "Marcus Webb",
+          "question": "What is the true total cost of NimbusAI at 200 seats including overage fees?",
+          "predictive_signal": "competitive_tco",
+          "likely_follow_up": false
+        },
+        {
+          "id": "Q8-002",
+          "raised_by": "David Okonkwo",
+          "question": "Can deployment be compressed to four weeks if legal slips one week?",
+          "predictive_signal": "deployment_flexibility",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q8-003",
+          "raised_by": "David Okonkwo",
+          "question": "Will Hindsight hold the $49,500 price if signing slips into October due to legal?",
+          "predictive_signal": "discount_extension",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q8-004",
+          "raised_by": "Marcus Webb",
+          "question": "Can Hindsight offer net-60 to match NimbusAI?",
+          "predictive_signal": "payment_terms",
+          "likely_follow_up": true
+        }
+      ],
+      "outcomes": {
+        "summary": "Discount negotiated to $49,500 with Sep 30 signature deadline. Net-45 terms approved. Competitive comparison delivered favoring Foresight on TCO. Security review still blocked — SIG Lite submitted but Elena has 14 open questions. Security call not yet scheduled. Legal review initiated.",
+        "next_meeting": "2026-09-25T14:00:00-04:00",
+        "deal_stage": "negotiation",
+        "sentiment": "mixed"
+      }
+    },
+    {
+      "call_id": "ACME-CALL-009",
+      "date": "2026-09-25T14:00:00-04:00",
+      "duration_minutes": 58,
+      "call_type": "security_review_and_final_negotiation",
+      "participants": [
+        {
+          "name": "Sarah Chen",
+          "role": "VP Sales Operations",
+          "company": "ACME Corporation",
+          "email": "sarah.chen@acme.com"
+        },
+        {
+          "name": "Marcus Webb",
+          "role": "Senior Procurement Manager",
+          "company": "ACME Corporation",
+          "email": "marcus.webb@acme.com"
+        },
+        {
+          "name": "Elena Vasquez",
+          "role": "Director of Information Security",
+          "company": "ACME Corporation",
+          "email": "elena.vasquez@acme.com"
+        },
+        {
+          "name": "David Okonkwo",
+          "role": "Chief Technology Officer",
+          "company": "ACME Corporation",
+          "email": "david.okonkwo@acme.com"
+        },
+        {
+          "name": "Jamie Rivera",
+          "role": "Account Executive",
+          "company": "Hindsight Labs",
+          "email": "jamie.rivera@hindsightlabs.io"
+        },
+        {
+          "name": "Alex Kim",
+          "role": "Head of Security",
+          "company": "Hindsight Labs",
+          "email": "alex.kim@hindsightlabs.io"
+        }
+      ],
+      "transcript": [
+        {
+          "timestamp": "00:00:05",
+          "speaker": "Elena Vasquez",
+          "text": "Thanks for joining, Alex. I reviewed the SIG Lite you submitted. I have outstanding concerns — your subprocessor list includes a vendor called CloudRelay that doesn't have a public SOC-2. That's a gap."
+        },
+        {
+          "timestamp": "00:00:50",
+          "speaker": "Alex Kim",
+          "text": "CloudRelay handles our async job queue. They're SOC-2 Type I certified and Type II audit completes in November. I can share their Type I report and bridge letter today."
+        },
+        {
+          "timestamp": "00:01:35",
+          "speaker": "Elena Vasquez",
+          "text": "I'll need the bridge letter and your data residency confirmation. ACME policy requires all customer call transcripts stay in US-East. Your documentation mentions multi-region failover to EU-West."
+        },
+        {
+          "timestamp": "00:02:20",
+          "speaker": "Alex Kim",
+          "text": "Failover is configurable. For ACME we'd lock to US-East only. I'll add a data residency addendum to the contract."
+        },
+        {
+          "timestamp": "00:03:05",
+          "speaker": "Elena Vasquez",
+          "text": "That helps, but I can't sign off until I see CloudRelay's Type I and your penetration test summary from the last twelve months. The SOC-2 you provided doesn't include pentest results."
+        },
+        {
+          "timestamp": "00:03:45",
+          "speaker": "Jamie Rivera",
+          "text": "We have an executive summary of our Q1 pentest. Alex, can we share that under NDA?"
+        },
+        {
+          "timestamp": "00:04:00",
+          "speaker": "Alex Kim",
+          "text": "Yes, I'll send the executive summary — not the full report — by Monday."
+        },
+        {
+          "timestamp": "00:05:10",
+          "speaker": "Marcus Webb",
+          "text": "Let's shift to commercial. Legal is reviewing the MSA — they flagged your limitation of liability cap as too low. Also, we're now six days from the September thirtieth discount deadline."
+        },
+        {
+          "timestamp": "00:05:50",
+          "speaker": "Jamie Rivera",
+          "text": "I confirmed internally — if legal is the only blocker, we'll extend the forty-nine-five pricing to October seventh. That's the one-week extension I mentioned last call."
+        },
+        {
+          "timestamp": "00:06:25",
+          "speaker": "Marcus Webb",
+          "text": "What about the remaining fifteen hundred dollars? Sarah, can we reallocate from the training budget?"
+        },
+        {
+          "timestamp": "00:06:50",
+          "speaker": "Sarah Chen",
+          "text": "Already tried. Jamie, any chance of coming down to forty-eight thousand flat? That matches NimbusAI and keeps us under cap with the markup."
+        },
+        {
+          "timestamp": "00:07:30",
+          "speaker": "Jamie Rivera",
+          "text": "Forty-eight flat is below our floor. Best I can offer is forty-nine thousand if you sign by October seventh, and we'll include an extra ten hours of onboarding support — normally a three-thousand-dollar add-on."
+        },
+        {
+          "timestamp": "00:08:15",
+          "speaker": "David Okonkwo",
+          "text": "The extra onboarding hours help. Raj is ready to start connector setup the day we sign. But Elena, how long after you get the pentest summary?"
+        },
+        {
+          "timestamp": "00:08:50",
+          "speaker": "Elena Vasquez",
+          "text": "If Alex delivers CloudRelay Type I, the bridge letter, pentest summary, and the US-East-only addendum by Wednesday, I can turn around my assessment by Friday October third."
+        },
+        {
+          "timestamp": "00:09:30",
+          "speaker": "Sarah Chen",
+          "text": "That gives us one week for legal and one week for deployment before kickoff. It's tight."
+        },
+        {
+          "timestamp": "00:10:05",
+          "speaker": "Marcus Webb",
+          "text": "NimbusAI called yesterday offering to drop to forty-six thousand if we sign this week. I'm not recommending we switch, but I need ammunition in case finance pushes back."
+        },
+        {
+          "timestamp": "00:10:45",
+          "speaker": "Jamie Rivera",
+          "text": "Understood. I'll send an updated ROI analysis showing the commitment-tracking value — Sarah, you mentioned three deals last quarter where missed follow-ups cost us renewals."
+        },
+        {
+          "timestamp": "00:11:20",
+          "speaker": "Sarah Chen",
+          "text": "Yes, the Meridian renewal, the Tandem expansion, and the Copeland POC — all had dropped commitments. That's exactly why I want Foresight."
+        },
+        {
+          "timestamp": "00:12:00",
+          "speaker": "Marcus Webb",
+          "text": "Jamie, I need three things in writing before Monday: the forty-nine thousand offer letter, the October seventh deadline extension, and the onboarding hours add-on. And Alex — Elena's four security items by Wednesday."
+        },
+        {
+          "timestamp": "00:12:40",
+          "speaker": "Jamie Rivera",
+          "text": "You'll have the offer letter Monday morning. Alex will handle security docs."
+        },
+        {
+          "timestamp": "00:13:15",
+          "speaker": "Elena Vasquez",
+          "text": "One more thing — I want a right-to-audit clause in the contract. Non-negotiable for AI vendors processing our call recordings."
+        },
+        {
+          "timestamp": "00:13:45",
+          "speaker": "Jamie Rivera",
+          "text": "I'll take that to our counsel. We typically accept right-to-audit with thirty days' notice."
+        },
+        {
+          "timestamp": "00:14:20",
+          "speaker": "Marcus Webb",
+          "text": "Let's reconvene October second — after Elena's assessment and before the discount expires."
+        }
+      ],
+      "commitments": [
+        {
+          "commitment_id": "C9-001",
+          "description": "Extend $49,500 signature discount deadline to October 7 if legal is the only blocker",
+          "made_by": "Jamie Rivera",
+          "made_to": "Marcus Webb",
+          "due_date": "2026-09-29",
+          "category": "pricing",
+          "status": "fulfilled",
+          "fulfilment_evidence": {
+            "type": "verbal_confirmed_on_call",
+            "date": "2026-09-25T14:00:00-04:00",
+            "reference": "ACME-CALL-009 transcript",
+            "summary": "Jamie confirmed internal approval for one-week extension on this call; formal offer letter promised for Monday"
+          }
+        },
+        {
+          "commitment_id": "C9-002",
+          "description": "Send formal offer letter at $49,000 with 10 bonus onboarding hours and October 7 signature deadline",
+          "made_by": "Jamie Rivera",
+          "made_to": "Marcus Webb",
+          "due_date": "2026-09-29",
+          "category": "pricing",
+          "status": "pending",
+          "fulfilment_evidence": null
+        },
+        {
+          "commitment_id": "C9-003",
+          "description": "Deliver CloudRelay SOC-2 Type I report and bridge letter to Elena Vasquez",
+          "made_by": "Alex Kim",
+          "made_to": "Elena Vasquez",
+          "due_date": "2026-10-01",
+          "category": "security",
+          "status": "pending",
+          "fulfilment_evidence": null
+        },
+        {
+          "commitment_id": "C9-004",
+          "description": "Provide penetration test executive summary (Q1 2026) under NDA to Elena Vasquez",
+          "made_by": "Alex Kim",
+          "made_to": "Elena Vasquez",
+          "due_date": "2026-10-01",
+          "category": "security",
+          "status": "pending",
+          "fulfilment_evidence": null
+        },
+        {
+          "commitment_id": "C9-005",
+          "description": "Add US-East-only data residency clause to contract addendum for ACME",
+          "made_by": "Alex Kim",
+          "made_to": "Elena Vasquez",
+          "due_date": "2026-10-01",
+          "category": "security",
+          "status": "pending",
+          "fulfilment_evidence": null
+        },
+        {
+          "commitment_id": "C9-006",
+          "description": "Send updated ROI analysis quantifying value of commitment-tracking across lost renewals",
+          "made_by": "Jamie Rivera",
+          "made_to": "Sarah Chen",
+          "due_date": "2026-09-29",
+          "category": "business_case",
+          "status": "pending",
+          "fulfilment_evidence": null
+        },
+        {
+          "commitment_id": "C9-007",
+          "description": "Escalate right-to-audit clause (30 days notice) to Hindsight counsel for MSA redlines",
+          "made_by": "Jamie Rivera",
+          "made_to": "Elena Vasquez",
+          "due_date": "2026-10-01",
+          "category": "legal",
+          "status": "pending",
+          "fulfilment_evidence": null
+        },
+        {
+          "commitment_id": "C9-008",
+          "description": "Complete Elena's security assessment by October 3 assuming all four security documents received by October 1",
+          "made_by": "Elena Vasquez",
+          "made_to": "David Okonkwo",
+          "due_date": "2026-10-03",
+          "category": "security",
+          "status": "pending",
+          "fulfilment_evidence": null
+        }
+      ],
+      "objections": [
+        {
+          "objection_id": "O9-001",
+          "raised_by": "Elena Vasquez",
+          "topic": "security_compliance",
+          "summary": "CloudRelay subprocessor lacks SOC-2 Type II; EU-West failover region conflicts with ACME US-only data policy; pentest results not included in SOC-2 package",
+          "severity": "critical",
+          "status": "open"
+        },
+        {
+          "objection_id": "O9-002",
+          "raised_by": "Marcus Webb",
+          "topic": "budget_ceiling",
+          "summary": "$49,000 still above $48,000 NimbusAI counter-offer; finance may reject unless ROI case is compelling",
+          "severity": "high",
+          "status": "open"
+        },
+        {
+          "objection_id": "O9-003",
+          "raised_by": "Marcus Webb",
+          "topic": "competitive_pricing",
+          "summary": "NimbusAI dropped to $46,000 with pressure to sign this week",
+          "severity": "high",
+          "status": "open"
+        },
+        {
+          "objection_id": "O9-004",
+          "raised_by": "Sarah Chen",
+          "topic": "deployment_timeline",
+          "summary": "October 15 go-live at risk due to security review timeline and legal MSA redlines on liability cap",
+          "severity": "high",
+          "status": "open"
+        },
+        {
+          "objection_id": "O9-005",
+          "raised_by": "Elena Vasquez",
+          "topic": "security_compliance",
+          "summary": "Right-to-audit clause required in MSA for AI vendors processing call recordings — not yet agreed",
+          "severity": "medium",
+          "status": "open"
+        }
+      ],
+      "questions_and_concerns": [
+        {
+          "id": "Q9-001",
+          "raised_by": "Elena Vasquez",
+          "question": "Can Hindsight guarantee US-East-only data residency with no EU failover for ACME?",
+          "predictive_signal": "data_residency",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q9-002",
+          "raised_by": "Elena Vasquez",
+          "question": "When will CloudRelay complete SOC-2 Type II and will ACME be notified?",
+          "predictive_signal": "subprocessor_compliance",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q9-003",
+          "raised_by": "Marcus Webb",
+          "question": "Will Hindsight accept a right-to-audit clause in the MSA?",
+          "predictive_signal": "contract_terms",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q9-004",
+          "raised_by": "Sarah Chen",
+          "question": "Can deployment start before Elena's final sign-off if data residency addendum is in place?",
+          "predictive_signal": "parallel_workstreams",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q9-005",
+          "raised_by": "Marcus Webb",
+          "question": "What ROI proof do we have that Foresight's commitment tracking justifies the premium over NimbusAI?",
+          "predictive_signal": "roi_justification",
+          "likely_follow_up": true
+        },
+        {
+          "id": "Q9-006",
+          "raised_by": "David Okonkwo",
+          "question": "Is Raj's team ready to begin Salesforce and Gong connector setup on signing day?",
+          "predictive_signal": "deployment_readiness",
+          "likely_follow_up": false
+        }
+      ],
+      "outcomes": {
+        "summary": "Security review remains the critical path — Elena blocked sign-off pending four documents from Alex Kim by Oct 1. Pricing improved to $49,000 with bonus onboarding hours; discount extended to Oct 7. NimbusAI countered at $46,000. Legal reviewing MSA liability and audit clauses. Next checkpoint Oct 2.",
+        "next_meeting": "2026-10-02T14:00:00-04:00",
+        "deal_stage": "final_negotiation",
+        "sentiment": "high_urgency"
+      }
+    }
+  ],
+  "cross_call_continuity": {
+    "budget_trajectory": {
+      "initial_quote": 62000,
+      "revised_quote_call_7": 52000,
+      "signature_discount_call_8": 49500,
+      "latest_offer_call_9": 49000,
+      "acme_ceiling": 50000,
+      "nimbusai_initial": 48000,
+      "nimbusai_latest": 46000
+    },
+    "open_commitments_without_evidence": [
+      "C8-004",
+      "C8-005",
+      "C9-002",
+      "C9-003",
+      "C9-004",
+      "C9-005",
+      "C9-006",
+      "C9-007"
+    ],
+    "fulfilled_commitments": [
+      "C7-001",
+      "C7-002",
+      "C7-003",
+      "C7-004",
+      "C8-001",
+      "C8-002",
+      "C8-003",
+      "C9-001"
+    ],
+    "persistent_objections": [
+      "budget_ceiling",
+      "competitive_pricing",
+      "security_compliance",
+      "deployment_timeline"
+    ],
+    "predicted_next_topics": [
+      "Elena will ask about CloudRelay SOC-2 Type II completion timeline",
+      "Marcus will push for $48,000 or better to match NimbusAI",
+      "Sarah will ask whether deployment can begin before full security sign-off",
+      "Legal will raise limitation of liability and right-to-audit redlines",
+      "David will ask for a day-by-day deployment plan assuming Oct 7 signature"
+    ]
+  }
+}
