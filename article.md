@@ -1,249 +1,161 @@
-# Why We Built Foresight: Stopping AI from Committing Commercial Suicide in Enterprise Sales
+# I built an agent that checks its own past promises before replying
 
-If you give an LLM access to a sales inbox, it will eventually agree to an impossible contract. 
+The problem wasn't in the code. It was in the conversation — a SOC-2 report promised 31 days ago, never delivered, and completely absent from the context window of anyone about to send a commercial reply.
 
-Last week, we tested what happens when a prospect sends an aggressive negotiation email: *"Can you give us 40% off and get us live into production in two weeks?"* A standard prompt-chained LLM happily replied that it could make that work if the customer signed by Friday. In the real world, sending that email would have triggered a contractual disaster: our engineering team requires at least 21 days for secure VPC peering, our finance team caps rep discounts at 15%, and our security lead had already barred all production data ingestion until an overdue compliance audit was reviewed.
+That gap between what was said and what was done is exactly the kind of thing that sinks enterprise deals. And it's exactly the kind of thing a generation step, given only the current incoming message, has no way to detect on its own. The information exists. It just isn't there when it's needed.
 
-Stateless LLMs fail at enterprise sales because they suffer from acute context amnesia. They treat each incoming message as an isolated conversational turn, completely blind to the commitments, constraints, and politics established over months of prior calls. 
 
-To fix this, we built **Foresight**, an enterprise deal intelligence engine that uses [Hindsight](https://github.com/vectorize-io/hindsight) to maintain an active, self-updating memory bank of the entire customer relationship. Instead of simply generating agreeable text, Foresight intercepts incoming demands, checks them against historical commitments and company policies, detects multi-variable collisions, and dynamically updates its strategy when real-world facts change.
+So I built a system that retrieves it first.
 
-Here is how we designed the system, the architectural trade-offs we encountered, and why agent memory must act as a computational governor rather than a simple passive search index.
+## What the system does
 
----
+Foresight is a deal intelligence assistant for enterprise B2B sales. The core idea: before generating any response to a customer request, the system retrieves the relevant history of the deal from an indexed memory bank and checks the incoming request against what's already been established. Not a summary. Not a CRM note passed in as a string. An indexed, queryable memory store — backed by [Hindsight](https://github.com/vectorize-io/hindsight) — that holds every interaction, every stakeholder commitment, and every policy constraint recorded across the deal lifecycle.
 
-## The System Architecture: How Foresight Fits Together
+The scenario we built around is deliberately messy: an eight-week enterprise deal between a vendor (Veridian) and a customer (ACME Corp), five stakeholders with conflicting priorities, nine recorded interactions, and a Friday vendor-decision deadline. When ACME sends the message "Can you give us 40% off and get us live into production in two weeks?", the system doesn't immediately draft a reply. It first runs a Collision Check — a structured cross-reference of the incoming request against retrieved deal memory and company policy.
 
-Enterprise sales deals are not linear chats; they are multi-month distributed state machines. A single deal involves half a dozen stakeholders with competing agendas:
-* **The Champion** wants roadmap features delivered yesterday.
-* **The Technical Evaluator** cares about latency, architecture, and deployment constraints.
-* **The Security Gatekeeper (CISO)** cares about compliance, data residency, and audit certifications.
-* **The Economic Buyer (CFO)** enforces budget ceilings and hates multi-year lock-in.
-* **Procurement** plays hardball on discounts and payment terms.
+The result is three graded collision cards:
 
-To model this reality without building a bloated microservice architecture, we designed Foresight around three distinct layers:
+- 🔴 **Security Blocker**: A SOC-2 Type II report was promised to Nadia Chen (CISO) 31 days ago. No fulfilment is recorded. Nadia explicitly made this a hard prerequisite for any production access.
+- 🟠 **Timeline Conflict**: The 2-week deployment request conflicts with a 4–6 week baseline confirmed by Veridian's Solutions Architect in Call #3. Marcus (Principal Architect) also noted a hard October 15 production freeze in that same call.
+- 🟡 **Commercial Alignment**: 40% off a $72,000 ARR quote is $43,200. Linda (CFO) set a hard $50,000 ceiling in Call #4. The rep's unilateral discount authority is capped at 15% ($61,200 floor). Competitor NimbusAI is at $48,000. The actual defensible range is $48,000–$50,000 — not a 40% concession.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 1. Historical Interaction Ingestion (Hindsight Memory Bank)  │
-│    Ingests call transcripts, emails, and commitments into   │
-│    a dedicated deal memory bank via retain().               │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. The Collision Engine                                      │
-│    Cross-checks incoming demands against:                   │
-│    • Active commitments & fulfillment status in memory       │
-│    • Static company baseline policies (SLAs, margins)       │
-│    Categorizes conflicts into Security, Timeline, and Price.│
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. The Dynamic Reflection & Strategy Loop                   │
-│    When real-world state changes occur (e.g. SOC-2 sent),   │
-│    memory mutates live, re-evaluating advice from           │
-│    defensive blocker to offensive closing plan.             │
-└─────────────────────────────────────────────────────────────┘
-```
+The system surfaces each collision with verbatim evidence citations from indexed memory: which call it came from, who said it, what the current commitment status is, and what the company policy says. The recommendation the system generates is a direct function of that state — not a free-form LLM opinion.
 
-Rather than feeding an entire 8-week call history into a prompt window—which burns tokens, degrades reasoning attention, and costs a fortune—we use [Vectorize agent memory](https://vectorize.io/what-is-agent-memory) to maintain persistent structured entities: stakeholders, explicit objections, competitor mentions, and an auditable commitment ledger.
+## The memory layer is the core design decision
 
----
+The thing that makes this work is treating deal memory as a first-class object, not a string you pass into a prompt.
 
-## Core Technical Story: Moving from Naive RAG to Collision Detection
+I used [Hindsight](https://hindsight.vectorize.io/) as the memory backend. Hindsight exposes two primitives: `retain()` to write observations into the memory bank, and `recall()` to retrieve relevant context. The separation matters — as [agent memory architectures](https://vectorize.io/what-is-agent-memory) that cleanly split storage from retrieval tend to give you more control over what ends up in the context window and when.
 
-Most developers building sales tooling reach immediately for naive Retrieval-Augmented Generation (RAG): embed previous call summaries in a vector database, perform cosine similarity search on the incoming prompt, and feed the top-k chunks into the context window.
-
-During our early testing, naive RAG broke down completely. Consider this incoming request from the customer's procurement lead:
-
-> *"Can you give us 40% off and get us live into production in two weeks?"*
-
-If you run a standard vector search against the past 8 weeks of call notes, your embedding model will retrieve chunks containing words like "discount", "pricing", and "timeline". 
-
-What does it miss? **Call #2 from 31 days prior.**
-
-In Call #2, the customer's CISO (Nadia Chen) stated:
-> *"No production data can touch your platform without our security team reviewing your audited SOC-2 Type II report."*
-
-Semantically, "SOC-2 Type II audit" has almost zero cosine similarity to "40% discount". A traditional RAG pipeline ignores it. Yet operationally, that single security mandate is a hard fatal blocker: agreeing to a two-week deployment is contractually impossible because the security team hasn't even begun reviewing the compliance report.
-
-To solve this, we abandoned simple semantic retrieval and built a deterministic **Multi-Constraint Collision Engine**. 
-
-Instead of asking the LLM *"How should I answer this email?"*, the system evaluates the request against three discrete constraint checks:
-1. **🔴 Security Gate:** Are there unfulfilled compliance commitments or unresolved access blockers?
-2. **🟠 Timeline Feasibility:** Does the requested go-live date violate engineering lead times (4–6 weeks standard) or crash into documented customer code freezes?
-3. **🟡 Commercial Alignment:** Does the requested discount violate delegation-of-authority limits, ignore established budget caps, or fail to account for competitor bids?
-
----
-
-## Code-Backed Implementation: How We Integrated Hindsight
-
-Let's look at how this is implemented in our codebase.
-
-### 1. Ingesting Deal History with `retain()`
-
-In `memory.py`, we initialize the deal bank and index every conversation, stakeholder sensitivity, and commitment into [Hindsight](https://hindsight.vectorize.io/):
+The ingestion pipeline seeds all nine interactions, five stakeholder profiles, and three tracked commitments into memory at session start:
 
 ```python
-class DealMemoryBank:
-    def __init__(self, deal_path: str = ACME_DEAL_PATH, kb_path: str = COMPANY_KB_PATH):
-        self.deal_data = self._load_json(deal_path)
-        self.company_kb = self._load_json(kb_path)
-        self.commitments = self.deal_data.get("commitments", [])
-        self.interactions = self.deal_data.get("interactions", [])
-        
-        # Initialize Hindsight client
-        self.hindsight_client = None
-        self._init_hindsight()
-
-    def retain(self, content: str, category: str, metadata: Optional[Dict[str, Any]] = None):
-        """Retains an observation, commitment, or interaction into deal memory."""
-        if self.hindsight_client:
-            self.hindsight_client.retain(
-                bank_id="acme-deal",
-                text=content,
-                context=category
-            )
+# memory.py — seed_deal_memory()
+for call in self.interactions:
+    content_parts = [
+        f"[CALL {call.get('call_id')}] {call.get('title')} — {call.get('date')}.",
+        f"Attendees: {', '.join(call.get('attendees', []))}.",
+        f"Summary: {call.get('summary', '')}",
+        "Key takeaways: " + " | ".join(call.get("key_takeaways", [])),
+    ]
+    self.retain(
+        content=" ".join(content_parts),
+        category="interaction",
+        metadata={"call_id": call.get("call_id"), "date": call.get("date")},
+    )
 ```
 
-Each interaction is tagged with its chronological context. Crucially, promises made by sales reps are extracted into structured **Commitments** with an explicit initial state: `"Overdue"` or `"Pending"`, accompanied by the audit note: *"No fulfilment recorded"*.
+Each `retain()` call logs to a local audit trail and, when a Hindsight API key is configured, pushes to the cloud memory bank. The system runs in hybrid mode: cloud-backed retrieval when the key is available, local token-overlap scoring as a fallback. The fallback is functional but limited — it scores by keyword overlap, which can miss paraphrased queries. It's a development convenience, not a production strategy.
 
-### 2. Multi-Constraint Collision Evaluation
-
-In `collision_detector.py`, the engine intercepts the customer's request and cross-references active commitments and baseline company rules:
+For the pre-call brief, the system fires five targeted queries against Hindsight rather than a single catch-all query:
 
 ```python
-def check_collisions(self, customer_request: str, deal_context: Dict[str, Any]) -> Dict[str, Any]:
-    commitments = deal_context.get("commitments", [])
-    kb_deploy = self.company_kb.get("deployment_rules", {})
-    kb_pricing = self.company_kb.get("pricing_and_discount_rules", {})
-
-    # Check 1: Security Gate (SOC-2 Type II Report)
-    soc2_comm = next((c for c in commitments if c.get("id") == "COMM-02"), None)
-    is_soc2_completed = soc2_comm and soc2_comm.get("status") == "Completed"
-
-    collisions = []
-
-    if not is_soc2_completed:
-        collisions.append({
-            "severity": "RED",
-            "badge": "🔴 Security Blocker",
-            "title": "Unfulfilled SOC-2 Mandate for Production Access",
-            "description": "Nadia Chen (CISO) explicitly mandated that NO production data can touch Veridian without reviewed SOC-2 Type II audit report.",
-            "evidence": [
-                "Call #2 (31 days ago): Nadia stated 'No production data can touch your platform without our security team reviewing your audited SOC-2 Type II report.'",
-                "Commitment COMM-02: 'SOC-2 Type II Audit Report Delivery' is currently OVERDUE (31 days elapsed)."
-            ],
-            "impact": "CRITICAL: Promising deployment before SOC-2 sign-off triggers an immediate security veto."
-        })
-    else:
-        collisions.append({
-            "severity": "GREEN",
-            "badge": "✅ Security Cleared",
-            "title": "SOC-2 Type II Report Delivered",
-            "description": "Security gate unlocked for staging and production onboarding."
-        })
-
-    # Check 2: Timeline Feasibility
-    if any(k in customer_request.lower() for k in ["two weeks", "2 weeks", "14 days"]):
-        collisions.append({
-            "severity": "ORANGE",
-            "badge": "🟠 Timeline Conflict",
-            "title": "Unrealistic 2-Week Deployment Request vs. 4-6 Week Baseline",
-            "description": "Veridian standard onboarding takes 4 to 6 weeks. No 2-week promise was ever recorded.",
-            "evidence": [
-                "Call #3: SA confirmed standard deployment is 4 to 6 weeks due to VPC peering.",
-                "Call #9: Marcus confirmed ACME has an annual production freeze starting October 15."
-            ],
-            "impact": "HIGH: Agreeing creates catastrophic delivery failure and SLA breach risk."
-        })
-
-    return {"collisions": collisions}
+# memory.py — generate_pre_call_brief()
+recall_queries = [
+    "stakeholder objections budget security timeline",
+    "SOC-2 compliance security blocker Nadia commitment",
+    "NimbusAI competitor price 48000 Linda budget ceiling",
+    "deployment timeline 4 6 weeks October freeze Marcus",
+    "procurement Owen discount concession Friday deadline",
+]
+recalled = []
+seen_ids = set()
+for query in recall_queries:
+    results = self.recall(query=query, top_k=4)
+    for r in results:
+        uid = r.get("call_id") or r.get("id")
+        if uid not in seen_ids:
+            seen_ids.add(uid)
+            recalled.append(r)
 ```
 
-Notice the evidence array. Every single collision badge is tied directly to a specific historical call, speaker, and timestamp. In enterprise environments, human operators do not trust an AI that asserts *"This is risky"*. They trust an AI that shows the exact receipt from Call #2.
+These queries are manually specified — each one is targeted at a specific dimension of the deal: security, timeline, commercial, competitive, procurement. Deduplication by ID prevents the same call from appearing multiple times when it matches several queries. What comes out of this is the set of memories that actually goes into the LLM prompt — not a raw dump of all nine interactions.
 
-### 3. Dynamic Memory Reflection
+## Commitments as mutable state
 
-The most important capability of [Hindsight agent memory](https://github.com/vectorize-io/hindsight) is that memory is mutable. It updates when real-world actions occur.
+The second design decision I'm glad we made explicitly: commitments are tracked as structured mutable objects, not static text.
 
-When the sales rep finally emails the compliance package to the prospect's security team, they click **"Mark SOC-2 Sent to Nadia"** in the UI. Here is what happens under the hood:
+Each commitment carries an ID, a status, a recipient, a call reference, and a date. When the SOC-2 report is finally delivered, we don't patch a prompt string. We call `update_commitment_status()`, which mutates the commitment in `self.commitments`, records a structured reflection event via `retain()`, and causes every downstream check to re-evaluate against the new state:
 
 ```python
-def update_commitment_status(self, deal_context: Dict[str, Any], commitment_id: str, new_status: str, notes: str) -> bool:
-    commitments = deal_context.get("commitments", [])
-    for comm in commitments:
-        if comm.get("id") == commitment_id:
+# memory.py — update_commitment_status()
+def update_commitment_status(self, commitment_id: str, new_status: str, notes: str) -> bool:
+    for comm in self.commitments:
+        if comm["id"] == commitment_id:
+            old_status = comm["status"]
             comm["status"] = new_status
             comm["status_notes"] = notes
             comm["last_updated"] = datetime.now().isoformat()
-            
-            # Retain this critical state change into Hindsight memory
+
             reflection_text = (
                 f"COMMITMENT STATE CHANGE: '{comm['title']}' for recipient '{comm['recipient']}' "
-                f"changed to [{new_status}]. Note: {notes}"
+                f"changed from [{old_status}] to [{new_status}]. Note: {notes}"
             )
-            self.hindsight_client.retain(
-                bank_id="acme-deal",
-                text=reflection_text,
-                context="commitment_update"
+            self.retain(
+                content=reflection_text,
+                category="commitment_update",
+                metadata={"commitment_id": commitment_id}
             )
             return True
     return False
 ```
 
-When this state mutation is saved, the Collision Engine immediately recalculates. The 🔴 Security Blocker dissolves into a `✅ Security Cleared` notification, and the downstream response generation pivots automatically.
+The important distinction here: `self.commitments` is the live application state. Hindsight is where the audit trail lives. The `retain()` call after the mutation means the change event is also indexed as a retrievable memory — so a future `recall()` query will surface not just the original promise, but the fact that it was fulfilled and when.
+
+This is the behavior we were optimizing for. The mutable commitment state drives the recommendation logic. The LLM doesn't decide what's true — it reasons from what's already established in memory.
+
+## What the collision detector actually checks
+
+The collision engine is deliberately deterministic. It doesn't ask an LLM whether the incoming request conflicts with deal history. It checks specific conditions directly.
+
+```python
+# tanmaya/collision_detector.py — check_collisions()
+soc2_comm = next((c for c in commitments if c.get("id") == "COMM-02"), None)
+is_soc2_completed = soc2_comm and soc2_comm.get("status") == "Completed"
+
+req_lower = customer_request.lower()
+has_discount_request = any(k in req_lower for k in ["40%", "discount", "price", "cheaper", "cost", "off"])
+has_two_week_request = any(k in req_lower for k in ["two weeks", "2 weeks", "two-week", "2-week", "14 days"])
+```
+
+The security check looks up COMM-02 by ID and reads its `status` field directly. The timeline and discount checks are keyword matches against the lowercased request string. Each collision rule is self-contained and adds one entry to the collision list. Policy constraints — discount authority tiers, deployment minimums — come from a structured JSON knowledge base that feeds the detector separately from the memory bank. When policy changes, one file changes and every future check reflects it.
+
+The approach is auditable precisely because it's not opaque inference. You can read the collision list and trace every item back to a commit status, a keyword match, or a policy value. That traceability is the point.
+
+## How it behaves in practice
+
+Before the SOC-2 has been delivered: the customer sends "Can you give us 40% off and get us live into production in two weeks?" The collision check surfaces three conflicts with evidence citations. The recommended action the system generates is explicit: do not agree to any deployment date or pricing concession until the SOC-2 is delivered. The reply draft reflects this — it cites the security prerequisite honestly, references the 4–6 week baseline from Call #3, and proposes aligning within Linda's $50,000 budget ceiling.
+
+After `mark_soc2_sent()` is called:
+
+- COMM-02 status changes to `Completed` in `self.commitments`
+- The state change is recorded via `retain()` with category `commitment_update`
+- The collision check re-evaluates against the new commitment state
+- The 🔴 Security Blocker resolves to ✅ Security Cleared
+- The recommended action shifts to: proceed with commercial negotiation, target $49,000 ARR, propose a 3–4 week phased rollout, close before Friday
+
+The generated reply draft changes completely — from one that stops the conversation to one that closes it. The collision logic is deterministic Python; the final reply is generated by the LLM against the updated context. Same prompt template structure, different underlying state, different output.
+
+That's the whole system. Structured memory state drives what the collision layer detects. The collision layer drives what the LLM is asked to communicate.
+
+## What I'd do differently in production
+
+A few things I'd want to harden before running this against live deal data:
+
+**1. The local recall fallback needs an explicit degradation warning.** Token overlap scoring works for keyword-heavy queries but silently misses paraphrased content. In production, the local path should emit a clear warning rather than substituting quietly. The cloud-backed retrieval via Hindsight is the correct default; the fallback is a development aid.
+
+**2. Commitment IDs shouldn't be hardcoded.** The collision detector references `"COMM-02"` directly. In a system managing multiple deals in parallel, you'd query commitments by type and recipient. The data model supports this already — the execution logic just doesn't use it yet.
+
+**3. The LLM output contract needs tighter enforcement.** Groq's JSON schema mode is used for the pre-call brief, which helps significantly. The system prompt instructs the model to say "No record in memory" rather than invent plausible answers — but that instruction needs to be reinforced by the schema shape and by post-generation validation. The current enforcement could be stricter.
+
+**4. Memory retention should be event-driven.** The current implementation seeds all deal history at session start as a bulk import. In production, `retain()` should be called when meaningful events occur: a call ends, a commitment is made, a stakeholder changes position. Hindsight supports incremental retention; it's a wiring decision in this implementation, not a capability gap.
+
+**5. The audit log is your best debugging surface.** Every `retain()` call appends to `memory_audit_log`. During development, this was the most useful tool when the collision detector produced an unexpected result — the log showed exactly what was in memory and when each entry arrived. In production, this should be queryable, filterable, and persistent across sessions.
 
 ---
 
-## Results and Behavior: The Live Interaction
+The engineering lesson here isn't specific to sales. It applies anywhere you have long-running state that accumulates over time: incident response, contract review, engineering design discussions, support escalations.
 
-To verify the system, we ran our benchmark enterprise deal: **ACME Corp** (an 8-week history comprising 9 calls, 5 stakeholders, a \$72k quote, and an active competing bid from NimbusAI at \$48k).
+An agent that only has access to its training weights and the current message is unreliable whenever history is relevant. The fix isn't a better model. It's structured memory — the ability to `retain()` what happened, `recall()` what's relevant, and check the incoming request against that history before generating a single word of output.
 
-### Interaction 1: Before Memory Reflection (Defensive Triage)
-When the aggressive request (*"40% off + 2-week deploy"*) arrives:
-* **Foresight output:**
-  * 🔴 **Security Blocker:** Missing SOC-2 Report (Overdue by 31 days).
-  * 🟠 **Timeline Conflict:** 2 weeks requested vs. 4–6 week standard.
-  * 🟡 **Commercial Alignment:** 40% discount (\$43,200) violates margin policy and is unnecessarily low given Linda's \$50k budget ceiling.
-* **Strategic Advice Generated:**  
-  * *"⛔ DO NOT agree to deployment dates or price concessions yet. Your immediate priority is delivering the SOC-2 report to Nadia Chen."*
-
-### Interaction 2: After Memory Reflection (Offensive Negotiation)
-The rep clicks **"Mark SOC-2 Sent to Nadia"**. Hindsight records the reflection. The collision check re-runs automatically:
-* **Foresight output:**
-  * `✅ Security Cleared`: SOC-2 delivered; security gate unlocked.
-  * 🟠 **Timeline Conflict:** Adjusted to offer a phased 3-week express onboarding with dedicated solution architects.
-  * 🟡 **Commercial Alignment:** Counter-offers at **\$49,000 ARR**.
-* **Strategic Advice Generated:**  
-  * *"🎯 PROCEED WITH COMMERCIAL NEGOTIATION. Target price: \$49,000 (respects Linda's \$50k budget ceiling and beats NimbusAI's \$48k offer) with an agreement to sign before the October 15 code freeze."*
-
-The draft customer reply updates instantly, switching from a defensive delay to a confident commercial closing pitch.
-
----
-
-## Lessons Learned
-
-Building Foresight surfaced several non-obvious engineering realities about memory-augmented agents:
-
-### 1. Negative Grounding Prevents Hallucinated Certainty
-When tracking commitments, never let your agent declare: *"The report was never sent."* If an interaction happened outside the recorded system, that absolute claim destroys user trust. Instead, our ledger outputs: **`"No fulfilment recorded"`**. That subtle wording change reflects epistemic humility: the agent only claims knowledge of recorded events.
-
-### 2. Decouple Static Policy from Dynamic Memory
-Early on, we tried storing company policies (like minimum deployment timelines and discount delegation matrices) inside the same memory bank as call transcripts. The LLM regularly confused company rules with customer statements. Separating static company ground truth (`company_kb.json`) from dynamic deal memories (`acme_deal.json`) eliminated cross-contamination completely.
-
-### 3. Multi-Variable Constraints Beat Pure Probabilistic Generation
-You should not rely on an LLM's next-token prediction to decide whether a discount is legally permissible. Use deterministic code or structured Pydantic schemas to validate hard boundaries (budgets, compliance rules, timeline baselines), and let the LLM handle the natural language synthesis within those validated bounds.
-
----
-
-## Conclusion
-
-Stateless chatbots treat conversations as ephemeral noise. But in high-stakes enterprise workflows, conversation history is a web of promises, liabilities, and leverage.
-
-By integrating [Hindsight](https://github.com/vectorize-io/hindsight) into our deal intelligence architecture, we gave our agent the ability to remember what was promised, flag dangerous collisions, and dynamically adapt its strategy when real-world milestones are reached. That is the difference between an AI that makes reckless promises and one you can actually trust with your business.
-
----
-*Explore the full implementation on [GitHub](https://github.com/Rupikagouri/CtrlAltDeploy).*
+`retain()` records what happened. `recall()` retrieves what matters. The collision layer checks the new request against it. The LLM communicates from the resulting evidence. That ordering is what separates a grounded response from a confident hallucination.
